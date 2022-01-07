@@ -1,21 +1,5 @@
 # Hands-on Docker-02 : Docker Container Basic Operations
 
-Purpose of the this hands-on training is to give students the knowledge of basic operation on Docker containers.
-
-## Learning Outcomes
-
-At the end of the this hands-on training, students will be able to;
-
-- list the help about the Docker commands.
-
-- run a Docker container on EC2 instance.
-
-- list the running and stopped Docker containers.
-
-- explain the properties of Docker containers.
-
-- start, stop, and remove Docker containers.
-
 ## Outline
 
 - Part 1 - Launch a Docker Machine Instance and Connect with SSH
@@ -114,10 +98,10 @@ exit
 docker ps -a
 ```
 
-- Run the second `ubuntu` os with interactive shell open and name container as `clarus` and show that this `ubuntu` container is different from the previous one.
+- Run the second `ubuntu` os with interactive shell open and name container as `yasin` and show that this `ubuntu` container is different from the previous one.
 
 ```bash
-docker run -i -t --name clarus ubuntu
+docker run -i -t --name yasin ubuntu
 ```
 
 - Exit the `ubuntu` container and return to ec2-user bash shell.
@@ -150,19 +134,19 @@ docker ps
 docker stop 4e6 && docker ps -a
 ```
 
-- Restart the `clarus` container by its name and list only running containers.
+- Restart the `yasin` container by its name and list only running containers.
 
 ```bash
-docker start clarus && docker ps
+docker start yasin && docker ps
 ```
 
-- Connect to the interactive shell of running `clarus` container and `exit` afterwards.
+- Connect to the interactive shell of running `yasin` container and `exit` afterwards.
 
 ```bash
-docker attach clarus
+docker attach yasin
 ```
 
-- Show that `clarus` container has stopped by listing all containers.
+- Show that `yasin` container has stopped by listing all containers.
 
 ```bash
 docker ps -a
@@ -174,10 +158,10 @@ docker ps -a
 docker start 4e6 && docker attach 4e6
 ```
 
-- Show that we can get more information about `clarus` container by using `docker inspect` command and explain the properties.
+- Show that we can get more information about `yasin` container by using `docker inspect` command and explain the properties.
 
 ```bash
-docker inspect clarus | less
+docker inspect yasin | less
 ```
 
 - Delete the first container using its `ID`.
@@ -189,7 +173,7 @@ docker rm 4e6
 - Delete the second container using its name.
 
 ```bash
-docker rm clarus
+docker rm yasin
 ```
 
 - Show that both of containers are not listed anymore.

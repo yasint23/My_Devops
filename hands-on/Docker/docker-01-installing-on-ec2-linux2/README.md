@@ -2,14 +2,6 @@
 
 Purpose of the this hands-on training is to teach the students how to install Docker on on Amazon Linux 2 EC2 instance.
 
-## Learning Outcomes
-
-At the end of the this hands-on training, students will be able to;
-
-- install Docker on Amazon Linux 2 EC2 instance
-
-- configure a Cloudformation template for creating a Docker machine
-
 ## Outline
 
 - Part 1 - Launch Amazon Linux 2 EC2 Instance and Connect with SSH
