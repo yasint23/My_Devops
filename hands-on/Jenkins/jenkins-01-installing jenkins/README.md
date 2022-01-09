@@ -18,23 +18,6 @@ At the end of the this hands-on training, students will be able to;
 
 - create simple Pipeline with jenkinsfile
 
-
-## Outline
-
-- Part 1 - Installing Jenkins Server on Amazon Linux 2 with `yum` Repo
-
-- Part 2 - Getting familiar with Jenkins Dashboard
-
-- Part 3 - Installing Plugins
-
-- Part 4 - Creating a view
-
-- Part 5 - Creating First Jenkins Job
-
-- Part 6 - Creating a Simple Pipeline with Jenkins
-
-- Part 7 - Creating a Jenkins Pipeline with Jenkinsfile
-
 ## Part 1 - Installing Jenkins Server on Amazon Linux 2 with `yum` Repo
 
 - Launch an AWS EC2 instance of Amazon Linux 2 AMI with security group allowing SSH and TCP 8080 ports.

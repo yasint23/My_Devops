@@ -2,7 +2,7 @@
 
 Purpose of the this hands-on training is to teach students how to handle volumes in Docker containers.
 
-## Learning Outcomes
+## Learning Outcomes 
 
 At the end of the this hands-on training, students will be able to;
 
@@ -54,7 +54,7 @@ ssh -i .ssh/call-training.pem ec2-user@ec2-3-133-106-98.us-east-2.compute.amazon
 systemctl status docker
 ```
 
-- Run a `alpine` container with interactive shell open, and add command to run alpine shell. Here, explain explain what the alpine container is and why it is so popular. (Small size, Secure, Simple, Fast boot)
+- Run an `alpine` container with interactive shell open, and add command to run alpine shell. Here, explain explain what the alpine container is and why it is so popular. (Small size, Secure, Simple, Fast boot)
 
 ```bash
 docker run -it alpine ash
@@ -93,7 +93,7 @@ docker start 737 && docker attach 737
 - Show that the file `short-life.txt` is still there, and explain why it is there. (Container holds it data until removed).
 
 ```bash
-ls /home
+ls /home 
 ```
 
 - Exit the container and return to ec2-user bash shell.
@@ -523,3 +523,5 @@ docker rm -f nginx-default nginx-new
 ```bash
  docker volume prune -f
 ```
+
+ 

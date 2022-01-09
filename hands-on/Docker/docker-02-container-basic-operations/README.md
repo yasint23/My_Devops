@@ -1,5 +1,21 @@
 # Hands-on Docker-02 : Docker Container Basic Operations
 
+Purpose of the this hands-on training is to give students the knowledge of basic operation on Docker containers.
+
+## Learning Outcomes
+
+At the end of the this hands-on training, students will be able to;
+
+- list the help about the Docker commands.
+
+- run a Docker container on EC2 instance.
+
+- list the running and stopped Docker containers.
+
+- explain the properties of Docker containers.
+
+- start, stop, and remove Docker containers.
+
 ## Outline
 
 - Part 1 - Launch a Docker Machine Instance and Connect with SSH

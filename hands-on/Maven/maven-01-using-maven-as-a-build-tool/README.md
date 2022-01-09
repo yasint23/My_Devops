@@ -1,6 +1,11 @@
 # Hands-on Maven-01 : Using Maven As a Build Tool
 
+Purpose of the this hands-on training is to teach the students how to use Maven with Java as a build tool.
+
+
 ## Learning Outcomes
+
+At the end of the this hands-on training, students will be able to;
 
 - install Maven and Java-11 on Amazon Linux 2 EC2 instance
 
@@ -134,7 +139,6 @@ mvn clean package
 
 ```bash
 java -jar maven-experiment-1.0-SNAPSHOT.jar
-#to see Manifest folder unzip java -jar maven-experiment-1.0-SNAPSHOT.jar 
 ```
 
 - Explain the error in the standard output. 
@@ -184,7 +188,6 @@ mvn clean package
 
 ```bash
 scp -i <path-to-your-pem-file> -r <path-to-your-home-directory>/.aws ec2-user@<IP-of-your-instance>:/home/ec2-user/
-# Drag .aws folder from local to the ec2-home on vscode
 ```
 
 - Check if the the credentials are transferred to EC2 instance.
@@ -238,9 +241,6 @@ mvn clean site
 - Show the output ```site``` directory under target directory.
 
 - Run the command below to install Apache Server.
-
-# Go to ....maven-experiment]$ cd target/site
-$ python -m SimpleHTTPServer  # This is short way you do not need to do below sudoyum... below
 
 ```bash
 sudo yum install -y httpd
