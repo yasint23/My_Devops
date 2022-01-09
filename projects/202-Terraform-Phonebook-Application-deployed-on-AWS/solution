@@ -1,0 +1,53 @@
+# Yapilacaklar:
+
+# Terraform'u EC2 uzerinde calistirmak icin asagidaki kodlari sira ile calistir.
+
+sudo yum update -y && sudo yum install -y yum-utils 
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo 
+sudo yum -y install terraform && sudo yum -y install git && sudo yum install tree -y 
+terraform --version && git --version && mkdir tf-files && cd tf-files  
+touch main.tf outputs.tf provider.tf sec-gr.tf user-data.sh
+
+# - Private github repo olusturacagiz, phonebook-app.py, templates icerisine gonderecegiz.
+> Terraform da dbserver.endpoint configure edip bu repoya gonderecegiz. 
+
+# Terraform da resource olarak main.tf de 10 adet blog olusturulacak    
+1- Launch template 
+2- ALB
+3- listener
+4- target group
+5- ASG 
+6- db instance
+7- server sec group >> alb-sec-gr den 80
+8- alb-sec-gr >> 80
+9- rds-sec-gr >> ec2 dan gelen 3306
+10-dbserver.endpoint
+
+# ec2 larda neler olacak: 
+- python ve flask
+- git
+- phonebook-app.py + templates
+
+# Dosya yapisi:
+mkdir tf-files && cd tf-files && touch main.tf outputs.tf provider.tf sec-gr.tf user-data.sh
+
+# provider.tf dosyasina aws ve github provider degerlerini girdik 
+https://registry.terraform.io/browse/providers den aldik.
+
+# Security gruplari olusturacagiz. sec-gr.tf dosyasini dolduralim.
+alb-sec-gr >> 80 olusturduk
+>server_sec_group olustururken cidr bloku yerine alb-sec-gr.id yazarak oradan gelenlere acika olacak.
+>ayni sekilde rds_sec_group olustururken server_sec_group.id yazarak ec2 lara baglamis olacagiz.
+
+# VPC ID yi terminal den almak icin komut:
+aws ec2 describe-subnets --no-paginate --filters "Name=default-for-az,Values=true" | egrep "(VpcId)|(SubnetId)"
+
+#  Error: 
+subnet ve VPC  hatası alanlar
+subnets = data.aws_subnets.example.ids yerine
+subnets = ["subnet-164e1418","subnet-c9ff90e8","subnet-e863038e","subnet-97513cc8","subnet-50f4c41d","subnet-4643f777"]
+bu şekilde elle vpcler girilebilir. Sadece public subnetler Private olanlari eklemeyiniz,
+
+# main.tf yazmaya baslayalim
+# outputs.tf yazdik
+# Terraform calistirmak icin tf-files icinde terminal actik. terraform fmt ile dosyayi formatladik, indentation duzenlemesi
