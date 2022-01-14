@@ -2,17 +2,6 @@
 
 Purpose of the this hands-on training is to learn how to trigger Jenkins jobs with different ways.
 
-## Learning Outcomes
-
-At the end of the this hands-on training, students will be able to;
-
-- integrate your Jenkins server with Github
-
-- trigger Jenkins jobs with webhook
-
-- trigger Jenkins jobs with Poll SCM
-
-
 ## Outline
 
 - Part 1 - Integrating Jenkins with GitHub using Webhook
@@ -22,8 +11,6 @@ At the end of the this hands-on training, students will be able to;
 - Part 3 - Configuring Jenkins Pipeline with GitHub Webhook to Run the Python Code
 
 - Part 4 - Creating a Pipeline with Poll SCM
-
-
 
 ## Part 1 - Integrating Jenkins with GitHub using Webhook
 

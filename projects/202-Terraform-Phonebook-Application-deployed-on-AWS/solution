@@ -36,14 +36,14 @@ https://registry.terraform.io/browse/providers den aldik.
 
 # Security gruplari olusturacagiz. sec-gr.tf dosyasini dolduralim.
 alb-sec-gr >> 80 olusturduk
->server_sec_group olustururken cidr bloku yerine alb-sec-gr.id yazarak oradan gelenlere acika olacak.
+>server_sec_group olustururken cidr bloku yerine alb-sec-gr.id yazarak oradan gelenlere acik olacak.
 >ayni sekilde rds_sec_group olustururken server_sec_group.id yazarak ec2 lara baglamis olacagiz.
 
 # VPC ID yi terminal den almak icin komut:
 aws ec2 describe-subnets --no-paginate --filters "Name=default-for-az,Values=true" | egrep "(VpcId)|(SubnetId)"
 
 #  Error: 
-subnet ve VPC  hatası alanlar
+subnet ve VPC  hatası olursa
 subnets = data.aws_subnets.example.ids yerine
 subnets = ["subnet-164e1418","subnet-c9ff90e8","subnet-e863038e","subnet-97513cc8","subnet-50f4c41d","subnet-4643f777"]
 bu şekilde elle vpcler girilebilir. Sadece public subnetler Private olanlari eklemeyiniz,

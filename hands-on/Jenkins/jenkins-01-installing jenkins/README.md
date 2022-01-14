@@ -191,7 +191,7 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                echo "Clarusway_Way to Reinvent Yourself"
+                echo "By devopsyasin to Reinvent Yourself"
                 sh 'echo second step'
                 sh 'echo another step'                
                 sh '''

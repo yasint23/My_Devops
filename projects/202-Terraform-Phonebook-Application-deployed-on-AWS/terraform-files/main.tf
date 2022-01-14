@@ -1,46 +1,51 @@
-data "aws_vpc" "selected" {
-  default = true
-}
-
-data "aws_subnets" "example" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.selected.id]
-  }
-}
-
 data "aws_ami" "amazon-linux-2" {
   owners      = ["amazon"]
   most_recent = true
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm*"]
+    values = ["amzn2-ami-kernel*"]
   }
+
 }
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default-subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+
+
+}
+
 
 resource "aws_launch_template" "asg-lt" {
   name                   = "phonebook-lt"
   image_id               = data.aws_ami.amazon-linux-2.id
   instance_type          = "t2.micro"
-  key_name               = "yasin"
+  key_name               = "tyler-team"
   vpc_security_group_ids = [aws_security_group.server-sg.id]
-  user_data              = filebase64("user-data.sh")          #ec2 lar userdata ceksin diye base64 ancak launch template de filebase64, registry terraformda dikkat!!
-  depends_on             = [github_repository_file.dbendpoint] # ec2 lar launch template ile olusuyor ve db yi ec2 lar ile github daki repodan cekecegiz 
-  tag_specifications {                                         # dolayisi ile bu islemi burada simdi yapmasin sonraya biraksin diye dependency diye belirtmek gerekiyor
-    resource_type = "instance"                                 # diger dosya/bilgi cekme islemleri bu sayfada implicit dependency bu ise explicit dependency
+  depends_on             = [github_repository_file.dbendpoint]
+  user_data              = filebase64("user-data.sh")
+  tag_specifications {
+    resource_type = "instance"
     tags = {
       Name = "Web Server of Phonebook App"
     }
   }
+
 }
+
 
 resource "aws_alb_target_group" "app-lb-tg" {
   name        = "phonebook-lb-tg"
   port        = 80
   protocol    = "HTTP"
-  vpc_id      = data.aws_vpc.selected.id
+  vpc_id      = data.aws_vpc.default.id
   target_type = "instance"
-
   health_check {
     healthy_threshold   = 2
     unhealthy_threshold = 3
@@ -48,12 +53,12 @@ resource "aws_alb_target_group" "app-lb-tg" {
 }
 
 resource "aws_alb" "app-lb" {
-  name               = "phonebook-lb-tf"
+  name               = "phonebook-lb"
   ip_address_type    = "ipv4"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb-sg.id]
-  subnets            = data.aws_subnets.example.ids
+  subnets            = data.aws_subnets.default-subnets.ids
 }
 
 resource "aws_alb_listener" "app-listener" {
@@ -74,12 +79,23 @@ resource "aws_autoscaling_group" "app-asg" {
   health_check_grace_period = 300
   health_check_type         = "ELB"
   target_group_arns         = [aws_alb_target_group.app-lb-tg.arn]
-  vpc_zone_identifier       = aws_alb.app-lb.subnets #alb deki gibi data.aws_subnets.example.ids yazabilirdik farkli kullanim icin yukarida alb den cekiyoruz
+  vpc_zone_identifier       = aws_alb.app-lb.subnets
   launch_template {
     id      = aws_launch_template.asg-lt.id
     version = aws_launch_template.asg-lt.latest_version
   }
 }
+
+
+resource "github_repository_file" "dbendpoint" {
+  content             = aws_db_instance.db-server.address
+  file                = "dbserver.endpoint"
+  repository          = "phonebook"
+  overwrite_on_create = true
+  branch              = "main"
+
+}
+
 
 resource "aws_db_instance" "db-server" {
   instance_class              = "db.t2.micro"
@@ -91,22 +107,15 @@ resource "aws_db_instance" "db-server" {
   identifier                  = "phonebook-app-db"
   name                        = "phonebook"
   engine                      = "mysql"
-  engine_version              = "8.0.23"
+  engine_version              = "8.0.19"
   username                    = "admin"
-  password                    = "yasin123456"
+  password                    = "Oliver_1"
   monitoring_interval         = 0
   multi_az                    = false
   port                        = 3306
   publicly_accessible         = false
-  skip_final_snapshot         = true
+  skip_final_snapshot         = false
 
 }
 
-resource "github_repository_file" "dbendpoint" {
-  content             = aws_db_instance.db-server.address #'address' yerine endpoint yazarsak sonunda ':3306' geliyor application da hata veriyor. 
-  file                = "dbserver.endpoint"               # Application calismasi icin bu file icine db.endpoint gidecek,  
-  repository          = "phonebook"                       #phonebook.app de (db_endpoint = open("/home/ec2-user/phonebook/dbserver.endpoint") belirtildi 
-  overwrite_on_create = true                              # ismi farkli olabilirdi, ec2 lar endpointi bu filedan cekecek,
-  branch              = "main"
-}
 
