@@ -85,16 +85,13 @@ sudo mv apache-tomcat-8.5.73 /opt/tomcat
 - Now Change Tomcat Server Port
 
 - Go to /opt/tomcat/conf/server.xml file
-```bash
-cd /opt/tomcat/conf
-cat server.xml
 
 - Search for `Connector` and verify/change the Port Value, save the file.
 
 ```bash
     <Connector port="8080" protocol="HTTP/1.1"
                connectionTimeout="20000"
-               redirectPort="8443" />                
+               redirectPort="8443" />
 ```
 
 - Change Permission of Scripts in `/opt/tomcat/bin`
@@ -102,20 +99,21 @@ cat server.xml
 ```bash
 cd /opt/tomcat/bin
 ls -la
-sudo chmod +x *    # We have already done from cloudformation, just see the files are execution mode
+sudo chmod +x *
 ```
 
 - Set Credentials of Tomcat that Jenkins will use.
 
 ```bash
 cd /opt/tomcat/conf
-sudo vi tomcat-users.xml
 ```
 - Update `tomcat-users.xml` file.
 
 - `manager-script` & `admin-gui` are needed for jenkins to access tomcat.
 
 - Set roles as `manager-script` & `admin-gui` and set password to tomcat as follows:
+# For update;  sudo vi tomcat-users.xml
+# copy the bash below of file 
 
 ```bash
   <role rolename="manager-script"/>
@@ -123,10 +121,9 @@ sudo vi tomcat-users.xml
   <user username="tomcat" password="tomcat" roles="manager-script,admin-gui"/>
 ```
 
-- Note : Don't make any change only add the bottom the bash command above.
+- Note : Don't forget to remove the xml comment bloks `<!--` and `-->`. Delete these enclosing lines.  # if you copied below file ignore this.
 
 - Go to the `/opt/tomcat/webapps/host-manager/META-INF/` and edit file `context.xml`. Actually commenting out the tagged `CookieProcessor` and `Valve` parts.
-# sudo vi context.xml and make comment lines between <contex...> line and <manager...> line
 
 ```bash
 <?xml version="1.0" encoding="UTF-8"?>
@@ -147,18 +144,18 @@ sudo vi tomcat-users.xml
   limitations under the License.
 -->
 <Context antiResourceLocking="false" privileged="true" >
-	<!--   #Adding This and 
+	<!--  #this
   <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor"
                    sameSiteCookies="strict" />
   <Valve className="org.apache.catalina.valves.RemoteAddrValve"
          allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />
-	-->   #and this one
+	-->   #this
   <Manager sessionAttributeValueClassNameFilter="java\.lang\.(?:Boolean|Integer|Long|Number|String)|org\.apache\.catalina\.filters\.CsrfPreventionFilter\$LruCache(?:\$1)?|java\.util\.(?:Linked)?HashMap"/>
 </Context>
 ```
 
-- Go to the `/opt/tomcat/webapps/manager/META-INF/` and edit file `context.xml`. Actually commenting out the tagged `CookieProcessor` and `Valve` parts.
-# sudo vi context.xml and make comment lines between <contex...> line and <manager...> line
+- Go to the `/opt/tomcat/webapps/manager/META-INF/` and edit file `context.xml`. Actually commenting out the tagged `CookieProcessor` and `Valve` parts. # I showed below
+
 ```bash
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
@@ -178,7 +175,7 @@ sudo vi tomcat-users.xml
   limitations under the License.
 -->
 <Context antiResourceLocking="false" privileged="true" >
-<!--  #this and
+<!--   #this
   <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor"
 	sameSiteCookies="strict" />
   <Valve className="org.apache.catalina.valves.RemoteAddrValve"
@@ -192,8 +189,8 @@ sudo vi tomcat-users.xml
 - Restart the tomcat server
 
 ```bash
-sudo /opt/tomcat/bin/shutdown.sh
-sudo /opt/tomcat/bin/startup.sh
+/opt/tomcat/bin/shutdown.sh
+/opt/tomcat/bin/startup.sh
 ```
 
 ## Part 5 - Auto start of Tomcat server at boot
