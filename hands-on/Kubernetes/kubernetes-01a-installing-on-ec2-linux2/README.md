@@ -38,7 +38,7 @@ At the end of the this hands-on training, students will be able to;
 - Name the second security group as worker-sec-group, and apply the following Worker Node(s) table to your worker nodes.
 
 ### Control-plane (Master) Node(s)
-
+kub-master-sec-grp
 |Protocol|Direction|Port Range|Purpose|Used By|
 |---|---|---|---|---|
 |TCP|Inbound|6443|Kubernetes API server|All|
@@ -50,13 +50,17 @@ At the end of the this hands-on training, students will be able to;
 |UDP|Inbound|8472|Cluster-Wide Network Comm. - Flannel VXLAN|Self|
 
 ### Worker Node(s)
-
+k8s-worker-sec-grp
 |Protocol|Direction|Port Range|Purpose|Used By|
 |---|---|---|---|---|
 |TCP|Inbound|10250|Kubelet API|Self, Control plane|
 |TCP|Inbound|30000-32767|NodePort Services†|All|
 |TCP|Inbound|22|remote access with ssh|Self|
 |UDP|Inbound|8472|Cluster-Wide Network Comm. - Flannel VXLAN|Self|
+
+Open two ec2:
+Ubuntu 20-04, t2.medium, kub-master-sec-grp
+Ubuntu 20-04, t2.medium, kub-worker-sec-grp
 
 > **Ignore this section for AWS instances. But, it must be applied for real servers/workstations.**
 >
@@ -80,18 +84,19 @@ At the end of the this hands-on training, students will be able to;
 - Hostname change of the nodes, so we can discern the roles of each nodes. For example, you can name the nodes (instances) like `kube20-master, kube20-worker-1`
 
 ```bash
-sudo hostnamectl set-hostname <node-name-master-or-worker>
+sudo hostnamectl set-hostname master
+sudo hostnamectl set-hostname worker
 bash
 ```
 
-- Install helper packages for Kubernetes.
+- Install helper packages for Kubernetes for both ec2.
 
 ```bash
-sudo apt-get update && sudo apt-get install -y apt-transport-https gnupg2
+sudo apt-get update && sudo apt-get install -y apt-transport-https gnupg2     
 
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -   # K8s in reposuna ulasmak icin bu komut bize key olusturacak
 
-echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list # Bu key ile repoya baglanacagiz
 ```
 
 - Update app repository and install Kubernetes packages and Docker.
@@ -116,16 +121,16 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-- As a requirement, update the `iptables` of Linux Nodes to enable them to see bridged traffic correctly. Thus, you should ensure `net.bridge.bridge-nf-call-iptables` is set to `1` in your `sysctl` config and activate `iptables` immediately.
+- As a requirement, update the `iptables` of Linux Nodes to enable them to see bridged traffic correctly. Thus, you should ensure `net.bridge.bridge-nf-call-iptables` is set to `1` in your `sysctl` config and activate `iptables` immediately. 
+# Master ve worker nodelar iletisim halinde bu konfigrasyonu yapmak gerekiyor
 
 ```bash
-cat << EOF | sudo tee /etc/sysctl.d/k8s.conf
+cat << EOF | sudo tee /etc/sysctl.d/k8s.conf    
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
 sudo sysctl --system
 ```
-
 
 ## Part 2 - Setting Up Master Node for Kubernetes
 
@@ -134,21 +139,21 @@ sudo sysctl --system
 - Pull the packages for Kubernetes beforehand
 
 ```bash
-sudo kubeadm config images pull
+ sudo kubeadm config images pull     
 ```
 
 - By default, the Kubernetes cgroup driver is set to system, but docker is set to systemd. We need to change the Docker cgroup driver by creating a configuration file `/etc/docker/daemon.json` and adding the following line then restart deamon, docker and kubelet:
 ```bash
-echo '{"exec-opts": ["native.cgroupdriver=systemd"]}' | sudo tee /etc/docker/daemon.json
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-sudo systemctl restart kubelet
+ echo '{"exec-opts": ["native.cgroupdriver=systemd"]}' | sudo tee /etc/docker/daemon.json
+ sudo systemctl daemon-reload
+ sudo systemctl restart docker
+ sudo systemctl restart kubelet
 ```
 
 - Let `kubeadm` prepare the environment for you. Note: Do not forget to change `<ec2-private-ip>` with your master node private IP.
 
 ```bash
-sudo kubeadm init --apiserver-advertise-address=<ec2-private-ip> --pod-network-cidr=10.244.0.0/16
+ sudo kubeadm init --apiserver-advertise-address=<"ec2-private-ip"> --pod-network-cidr=10.244.0.0/16 #If success go to line 181.
 ```
 
 > :warning: **Note**: If you are working on `t2.micro` or `t2.small` instances,  use the command with `--ignore-preflight-errors=NumCPU` as shown below to ignore the errors.
@@ -169,13 +174,13 @@ sudo kubeadm reset
 
 ```bash
 ...
-Your Kubernetes control-plane has initialized successfully!
+Your Kubernetes control-plane has initialized successfully!     # Copy the token on terminal we will use to connect worker
 
-To start using your cluster, you need to run the following as a regular user:
+To start using your cluster, you need to run the following as a regular user: 
 
   mkdir -p $HOME/.kube
   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config               # Go to line 208
 
 You should now deploy a pod network to the cluster.
 Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
@@ -184,7 +189,7 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 Then you can join any number of worker nodes by running the following on each as root:
 
   kubeadm join 172.31.3.109:6443 --token 1aiej0.kf0t4on7c7bm2hpa \
-      --discovery-token-ca-cert-hash sha256:0e2abfb56733665c0e6204217fef34be2a4f3c4b8d1ea44dff85666ddf722c02
+      --discovery-token-ca-cert-hash sha256:0e2abfb56733665c0e6204217fef34be2a4f3c4b8d1ea44dff85666ddf722c02  
 ```
 
 > Note to the Instructor: Note down the `kubeadm join ...` part in order to connect your worker nodes to the master node. Remember to run this command with `sudo`.
@@ -206,7 +211,7 @@ kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube
 - Master node (also named as Control Plane) should be ready, show existing pods created by user. Since we haven't created any pods, list should be empty.
 
 ```bash
-kubectl get nodes
+kubectl get nodes    # you can see master node ready we dont add workers yet
 ```
 
 - Show the list of the pods created for Kubernetes service itself. Note that pods of Kubernetes service are running on the master node.
@@ -245,7 +250,7 @@ kubectl get nodes
 
 - By default, the Kubernetes cgroup driver is set to system, but docker is set to systemd. We need to change the Docker cgroup driver by creating a configuration file `/etc/docker/daemon.json` and adding the following line then restart deamon, docker and kubelet:
 ```bash
-echo '{"exec-opts": ["native.cgroupdriver=systemd"]}' | sudo tee /etc/docker/daemon.json
+echo '{"exec-opts": ["native.cgroupdriver=systemd"]}' | sudo tee /etc/docker/daemon.json 
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 sudo systemctl restart kubelet
@@ -255,19 +260,19 @@ sudo systemctl restart kubelet
 
 ```bash
 sudo kubeadm join 172.31.3.109:6443 --token 1aiej0.kf0t4on7c7bm2hpa \
-    --discovery-token-ca-cert-hash sha256:0e2abfb56733665c0e6204217fef34be2a4f3c4b8d1ea44dff85666ddf722c02
+    --discovery-token-ca-cert-hash sha256:0e2abfb56733665c0e6204217fef34be2a4f3c4b8d1ea44dff85666ddf722c02   # token got from master
 ```
 
 - Go to the master node. Get the list of nodes. Now, we should see the new worker nodes in the list.
 
 ```bash
-kubectl get nodes
+sudo kubectl get nodes    #hata alirsan sudo yazma
 ```
 
 - Get the details of the nodes.
 
 ```bash
-kubectl get nodes -o wide
+sudo kubectl get nodes -o wide
 ```
 
 ## Part 4 - Deploying a Simple Nginx Server on Kubernetes
@@ -275,13 +280,13 @@ kubectl get nodes -o wide
 - Check the readiness of nodes at the cluster on master node.
 
 ```bash
-kubectl get nodes
+sudo kubectl get nodes
 ```
 
 - Show the list of existing pods in default namespace on master. Since we haven't created any pods, list should be empty.
 
 ```bash
-kubectl get pods
+sudo kubectl get pods
 ```
 
 - Get the details of pods in all namespaces on master. Note that pods of Kubernetes service are running on the master node and also additional pods are running on the worker nodes to provide communication and management for Kubernetes service.

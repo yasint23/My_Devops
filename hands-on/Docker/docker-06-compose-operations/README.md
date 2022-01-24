@@ -116,7 +116,6 @@ The image contains all the dependencies for the application, including Python it
 7. Copy the current directory `.` in the project to the workdir `.` in the image.
 8. Set the default command for the container to flask run.
 ```
-
 ```bash
 echo '
 FROM python:3.7-alpine
