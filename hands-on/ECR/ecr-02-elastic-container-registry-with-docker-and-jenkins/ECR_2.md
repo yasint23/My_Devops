@@ -24,17 +24,10 @@ At the end of the this hands-on training, students will be able to;
 
 - delete images and repositories on ECR from the AWS CLI.
 
-## Outline
+## Part 1 - Launching a Jenkins Server Configured for ECR Management  
 
-- Part 1 - Launching a Jenkins Server Configured for ECR Management
-
-- Part 2 - Prepare the Image Repository on ECR and Project Repository on GitHub with Webhook
-
-- Part 3 - Creating Jenkins Pipeline for the Project with GitHub Webhook
-
-- Part 4 - Cleaning up the Image Repository on AWS ECR
-
-## Part 1 - Launching a Jenkins Server Configured for ECR Management
+- To connect jenkins server 
+'sudo cat /var/lib/jenkins/secrets/initialAdminPassword'
 
 - Add token to the github. So, go to your github Account Profile  on right of the top >>>> Settings>>>>Developer Settings>>>>>>>>Personal access tokens >>>>>> Generate new token.
 
@@ -42,7 +35,7 @@ At the end of the this hands-on training, students will be able to;
 
 - Launch a pre-configured `Jenkins Server` from the terraform file running on Amazon Linux 2, allowing SSH (port 22) and HTTP (ports 80, 8080) connections.  
 
-- Clarusway Jenkins Server is configured with admin user `admin` and password `Clarusway1234`.
+- yasin Jenkins Server is configured with admin user `admin` and password `yasin1234`.
 
 - Open your Jenkins dashboard and navigate to `Manage Jenkins` >> `Manage Plugins` >> `Available` tab
 
@@ -53,10 +46,10 @@ At the end of the this hands-on training, students will be able to;
 
 ### Step-1: Prepare the Image Repository on ECR
 
-- Create a docker image repository `clarusway/to-do-app` on AWS ECR from Management Console.
+- Create a docker image repository `yasin/to-do-app` on AWS ECR from Management Console.
 ```text
 Visibility settings     : Private
-Repository name         :  <your account ID>.dkr.ecr.us-east-1.amazonaws.com/clarusway/to-do-app
+Repository name         :  <your account ID>.dkr.ecr.us-east-1.amazonaws.com/yasin/to-do-app
 Tag immutability        : Disable
 Image scan settings     : Disable
 Encryption settings     : Disable
@@ -125,7 +118,9 @@ vi Jenkinsfile
 
 Press "i" to edit 
 ```
-- Create a `Jenkinsfile` within the `todo-app-node-project` repo with following pipeline script. 
+- Create a `Jenkinsfile` within the `todo-app-node-project` repo with following pipeline script.
+# Jenkins pipeline Docker Container agent tarafindan calistirilsin bu nedenle asagidaki conf yaptik. Jenkinse nodejs yuklemek yerine Docker container ile bu isi hallediyoruz.
+
 ```groovy
 pipeline {
     agent any
@@ -147,7 +142,7 @@ pipeline {
 }
 ```
 
-- explain withEnv(["HOME=${env.WORKSPACE}"]) the meaning of this line
+# withEnv(["HOME=${env.WORKSPACE}"]) this line; Container todo-app altindaki butun dosyalara erisebilecek bu montlama sayesinde.
 
 - once we see the code is running, lets build its image. to do this, we should write Dockerfile based and configure the Jenkinsfile
 
@@ -184,7 +179,7 @@ pipeline {
     agent any
     environment {
         ECR_REGISTRY = "<aws_account_id>.dkr.ecr.us-east-1.amazonaws.com"
-        APP_REPO_NAME= "clarusway/to-do-app"
+        APP_REPO_NAME= "yasin/to-do-app"
     }
     stages {
         stage("Run app on Docker"){
@@ -233,6 +228,7 @@ git commit -m 'added Jenkinsfile'
 git push
 ```
 - Explain, why did we get `Error: Cannot perform an interactive login from a non TTY deviceAdd` error and add the following line into ```environment``` section in the Jenkins file.
+# Jenkins aws baglanmak isterken komutlari bulamiyor bunun icin cunku jenkins file icinde /usr/local/bin/(aws komutlarinin oldugu path) tanimli degil ve env var tanimlayarak ulasmasini saglamak gerekiyor.
 
 ```text
 PATH="/usr/local/bin/:${env.PATH}"
@@ -267,7 +263,7 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 - Then run the image
 
 ```bash
-docker run --name todo -dp 80:3000 <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/clarusway/to-do-app:latest
+docker run --name todo -dp 80:3000 <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/yasin/to-do-app:latest
 ```
 - Delete the container 
 
@@ -296,7 +292,7 @@ Press "i" to edit
     agent any
     environment {
         ECR_REGISTRY = "<aws_account_id>.dkr.ecr.us-east-1.amazonaws.com"
-        APP_REPO_NAME= "clarusway/to-do-app"
+        APP_REPO_NAME= "yasin/to-do-app"
         PATH="/usr/local/bin/:${env.PATH}"
     }
     stages {
@@ -388,23 +384,23 @@ git push
 - If necessary, authenticate the Docker CLI to your default `ECR registry`.
 
 ```bash
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 452889875890.dkr.ecr.us-east-1.amazonaws.com
 ```
 
-- Delete Docker image from `clarusway-repo/todo-app` ECR repository from AWS CLI.
+- Delete Docker image from `yasin-repo/todo-app` ECR repository from AWS CLI.
 
 ```bash
 aws ecr batch-delete-image \
-      --repository-name clarusway/to-do-app \
+      --repository-name yasin/to-do-app \
       --image-ids imageTag=latest \
       --region us-east-1
 ```
 
-- Delete the ECR repository `clarusway-repo/todo-app` from AWS CLI.
+- Delete the ECR repository `yasin-repo/todo-app` from AWS CLI.
 
 ```bash
 aws ecr delete-repository \
-      --repository-name clarusway/to-do-app \
+      --repository-name yasin/to-do-app \
       --force \
       --region us-east-1
 ```

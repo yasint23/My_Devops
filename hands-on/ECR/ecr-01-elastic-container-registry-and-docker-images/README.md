@@ -20,16 +20,6 @@ At the end of the this hands-on training, students will be able to;
 
 - delete images and repositories on ECR from the AWS CLI.
 
-## Outline
-
-- Part 1 - Launching a Docker Machine Instance Configured for ECR Management
-
-- Part 2 - Creating Repositories on AWS ECR
-
-- Part 3 - Work with AWS ECR
-
-- Part 4 - Managing Docker Images using AWS ECR as Repository
-
 ## Part 1 - Launching a Docker Machine Instance Configured for ECR Management
 
 - Launch a Compose enabled Docker machine on Amazon Linux 2 AMI with security group allowing HTTP and SSH connections using the terraform file. 
@@ -38,21 +28,15 @@ At the end of the this hands-on training, students will be able to;
 
 ## Part 2 - Creating Repositories on AWS ECR
 
-- Go to the `Amazon Elastic Container Registry` service and explain what it is.
+- Go to the `Amazon Elastic Container Registry`  Click on `Repositories` on ECR section
 
-- Introduce menus on the left side, `Amazon ECS`, `Amazon EKS`, `Amazon ECR`.
+- (*Repository names can support namespaces, which you can use to group similar repositories. For example if there are several teams using the same registry, `Team A` could use the `team-a` namespace while `Team B` uses the `team-b` namespace. Each team could have their own image called `web-app`, but because they are each prefaced with the team namespace, the two images can be used simultaneously without interference. Team A's image would be called `team-a/web-app`, while Team B's image would be called `team-b/web-app`.*)
 
-- Click on `Repositories` on ECR section, and explain the UI.
+- Enter a repository name ex. `yasin-repo/todo-app` (***In this hands-on, we will be working with a simple `todo list manager` that is running in `Node.js`.
 
-- Click on `Create Repository` and explain the default `registry` for user account. (`aws_account_id`.dkr.ecr.`region`.amazonaws.com)
+- See `tag immutability` and leave it as default.
 
-- Explain repository name convention. (*Repository names can support namespaces, which you can use to group similar repositories. For example if there are several teams using the same registry, `Team A` could use the `team-a` namespace while `Team B` uses the `team-b` namespace. Each team could have their own image called `web-app`, but because they are each prefaced with the team namespace, the two images can be used simultaneously without interference. Team A's image would be called `team-a/web-app`, while Team B's image would be called `team-b/web-app`.*)
-
-- Enter a repository name ex. `student1-repo/todo-app` (***In this hands-on, we will be working with a simple `todo list manager` that is running in `Node.js`. If you're not familiar with Node.js, don't worry! No real JavaScript experience is needed!***)
-
-- Explain `tag immutability` and leave it as default.
-
-- Explain `scan on push` and leave it as default.
+- See `scan on push` and leave it as default.
 
 - Create the repository and explain the complete URI.(*Combination of registry and repo name*)
 
@@ -217,7 +201,7 @@ docker rm todo-v1
 
 ```bash
 aws ecr create-repository \
-    --repository-name student2-repo/todo-app \
+    --repository-name yasin-2-repo/todo-app \
     --image-scanning-configuration scanOnPush=false \
     --image-tag-mutability IMMUTABLE \
     --region us-east-1
@@ -234,7 +218,7 @@ docker push xxxxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/student2-repo/todo-app:la
 
 ```bash
 docker image ls
-docker image rm --force <image_id>
+docker image rm -force <image_id>
 ```
 
 - Show that there is no image locally
@@ -262,7 +246,7 @@ docker run -dp 80:3000 xxxxxxxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/student2-re
 
 ```bash
 aws ecr batch-delete-image \
-      --repository-name student2-repo/todo-app \
+      --repository-name yasin-2-repo/todo-app \
       --image-ids imageTag=latest
 ```
 
@@ -270,7 +254,7 @@ aws ecr batch-delete-image \
 
 ```bash
 aws ecr delete-repository \
-      --repository-name student2-repo/todo-app \
+      --repository-name yasin-2-repo/todo-app \
       --force
 ```
 

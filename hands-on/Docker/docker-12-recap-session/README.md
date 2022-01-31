@@ -16,6 +16,19 @@ At the end of the this hands-on training, students will be able to;
 
 - use Docker-compose tool.
 
+## Outline
+
+- Part 1 - Launch a Docker Machine Instance and Connect with SSH
+
+- Part 2 - Basic Container Commands of Docker 
+
+- Part 3 - Docker Volumes
+
+- Part 4 - Docker Network
+
+- Part 5 - Docker-compose
+
+
 ## Part 1 - Launch a Docker Machine Instance and Connect with SSH
 
 - Launch a Docker machine on Amazon Linux 2 AMI with security group allowing SSH connections using the [Cloudformation Template for Docker Machine Installation](../docker-01-installing-on-ec2-linux2/docker-installation-template.yml).
@@ -23,7 +36,7 @@ At the end of the this hands-on training, students will be able to;
 - Connect to your instance with SSH.
 
 ```bash
-ssh -i .ssh/yasin.pem ec2-user@ec2-3-133-106-98.us-east-2.compute.amazonaws.com
+ssh -i .ssh/aduncan.pem ec2-user@ec2-3-133-106-98.us-east-2.compute.amazonaws.com
 ```
 
 ## Part 2 - Basic Container Commands of Docker
@@ -61,14 +74,13 @@ apt-get update && apt-get upgrade -y
 - Show the list of all containers available on Docker machine and explain container properties.
 
 ```bash
-exit
 docker ps -a
 ```
 
-- Run the second `ubuntu` os with interactive shell open and name container as `yasin` and show that this `ubuntu` container is different from the previous one.
+- Run the second `ubuntu` os with interactive shell open and name container as `clarus` and show that this `ubuntu` container is different from the previous one.
 
 ```bash
-docker run -i -t --name yasin ubuntu
+docker run -i -t --name clarus ubuntu
 ```
 
 - Exit the `ubuntu` container and return to ec2-user bash shell.
@@ -101,19 +113,19 @@ docker ps
 docker stop 4e6 && docker ps -a
 ```
 
-- Restart the `yasin` container by its name and list only running containers.
+- Restart the `clarus` container by its name and list only running containers.
 
 ```bash
-docker start yasin && docker ps
+docker start clarus && docker ps
 ```
 
-- Connect to the interactive shell of running `yasin` container and `exit` afterwards.
+- Connect to the interactive shell of running `clarus` container and `exit` afterwards.
 
 ```bash
-docker attach yasin
+docker attach clarus
 ```
 
-- Show that `yasin` container has stopped by listing all containers.
+- Show that `clarus` container has stopped by listing all containers.
 
 ```bash
 docker ps -a
@@ -134,7 +146,7 @@ docker rm 4e6
 - Delete the second container using its name.
 
 ```bash
-docker rm yasin
+docker rm clarus
 ```
 
 - Show that both of containers are not listed anymore.
@@ -228,22 +240,22 @@ docker volume inspect cw-vol
 sudo ls -al  /var/lib/docker/volumes/cw-vol/_data
 ```
 
-- Run a `alpine` container with interactive shell open, name the container as `yasin`, attach the volume `cw-vol` to `/cw` mount point in the container, and add command to run alpine shell. Here, explain `--volume` and `v` flags.
+- Run a `alpine` container with interactive shell open, name the container as `clarus`, attach the volume `cw-vol` to `/cw` mount point in the container, and add command to run alpine shell. Here, explain `--volume` and `v` flags.
 
 ```bash
-docker run -it --name yasin -v cw-vol:/cw alpine ash
+docker run -it --name clarus -v cw-vol:/cw alpine ash
 ```
 
-- List files/folder in `yasin` container, show mounting point `/cw`, and explain the mounted volume `cw-vol`.
+- List files/folder in `clarus` container, show mounting point `/cw`, and explain the mounted volume `cw-vol`.
 
 ```bash
 ls
 ```
 
-- Create a file in `yasin` container under `/cw` folder.
+- Create a file in `clarus` container under `/cw` folder.
 
 ```bash
-cd cw && echo "This file is created in the container yasin" > i-will-persist.txt
+cd cw && echo "This file is created in the container Clarus" > i-will-persist.txt
 ```
 
 - List the files in `/cw` folder, and show content of `i-will-persist.txt`.
@@ -252,7 +264,7 @@ cd cw && echo "This file is created in the container yasin" > i-will-persist.txt
 ls && cat i-will-persist.txt
 ```
 
-- Exit the `yasin` container and return to ec2-user bash shell.
+- Exit the `clarus` container and return to ec2-user bash shell.
 
 ```bash
 exit
@@ -264,13 +276,13 @@ exit
 docker ps -a
 ```
 
-- Remove the `yasin` container.
+- Remove the `clarus` container.
 
 ```bash
-docker rm yasin
+docker rm clarus
 ```
 
-- Show the list of all containers, and the `yasin` container is gone.
+- Show the list of all containers, and the `clarus` container is gone.
 
 ```bash
 docker ps -a
@@ -283,10 +295,10 @@ sudo ls -al  /var/lib/docker/volumes/cw-vol/_data && sudo cat /var/lib/docker/vo
 
 # Using Same Volume with Different Containers:
 
-- Run a `alpine` container with interactive shell open, name the container as `yasin2nd`, attach the volume `cw-vol` to `/cw2nd` mount point in the container, and add command to run alpine shell.
+- Run a `alpine` container with interactive shell open, name the container as `clarus2nd`, attach the volume `cw-vol` to `/cw2nd` mount point in the container, and add command to run alpine shell.
 
 ```bash
-docker run -it --name yasin2nd -v cw-vol:/cw2nd alpine ash
+docker run -it --name clarus2nd -v cw-vol:/cw2nd alpine ash
 ```
 
 - List the files in `/cw2nd` folder, and show that we can reach the file `i-will-persist.txt`.
@@ -295,10 +307,10 @@ docker run -it --name yasin2nd -v cw-vol:/cw2nd alpine ash
 ls -l /cw2nd && cat /cw2nd/i-will-persist.txt
 ```
 
-- Create an another file in `yasin2nd` container under `/cw2nd` folder.
+- Create an another file in `clarus2nd` container under `/cw2nd` folder.
 
 ```bash
-cd cw2nd && echo "This is a file of the container yasin2nd" > loadmore.txt
+cd cw2nd && echo "This is a file of the container Clarus2nd" > loadmore.txt
 ```
 
 - List the files in `/cw2nd` folder, and show content of `loadmore.txt`.
@@ -307,16 +319,16 @@ cd cw2nd && echo "This is a file of the container yasin2nd" > loadmore.txt
 ls && cat loadmore.txt
 ```
 
-- Exit the `yasin2nd` container and return to ec2-user bash shell.
+- Exit the `clarus2nd` container and return to ec2-user bash shell.
 
 ```bash
 exit
 ```
 
-- Run a `ubuntu` container with interactive shell open, name the container as `yasin3rd`, attach the volume `cw-vol` to `/cw3rd` mount point in the container, and add command to run bash shell.
+- Run a `ubuntu` container with interactive shell open, name the container as `clarus3rd`, attach the volume `cw-vol` to `/cw3rd` mount point in the container, and add command to run bash shell.
 
 ```bash
-docker run -it --name yasin3rd -v cw-vol:/cw3rd ubuntu bash
+docker run -it --name clarus3rd -v cw-vol:/cw3rd ubuntu bash
 ```
 
 - List the files in `/cw3rd` folder, and show that we can reach the all files created earlier.
@@ -325,13 +337,13 @@ docker run -it --name yasin3rd -v cw-vol:/cw3rd ubuntu bash
 ls -l /cw3rd
 ```
 
-- Create an another file in `yasin3rd` container under `/cw3rd` folder.
+- Create an another file in `clarus3rd` container under `/cw3rd` folder.
 
 ```bash
 cd cw3rd && touch file-from-3rd.txt && ls
 ```
 
-- Exit the `yasin3rd` container and return to ec2-user bash shell.
+- Exit the `clarus3rd` container and return to ec2-user bash shell.
 
 ```bash
 exit
@@ -346,11 +358,11 @@ exit
 docker network ls
 ```
 
-- Run two `alpine` containers with interactive shell, in detached mode, name the container as `yasin1st` and `yasin2nd`, and add command to run alpine shell. Here, explain what the detached mode means.
+- Run two `alpine` containers with interactive shell, in detached mode, name the container as `clarus1st` and `clarus2nd`, and add command to run alpine shell. Here, explain what the detached mode means.
 
 ```bash
-docker container run -dit --name yasin1st alpine ash
-docker container run -dit --name yasin2nd alpine ash
+docker container run -dit --name clarus1st alpine ash
+docker container run -dit --name clarus2nd alpine ash
 ```
 
 - Show the list of running containers on Docker machine.
@@ -365,19 +377,19 @@ docker ps
 docker network inspect bridge | less
 ```
 
-- Get the IP of `yasin2st` container.
+- Get the IP of `clarus2st` container.
 
 ```bash
-docker container inspect yasin2nd | grep IPAddress
+docker container inspect clarus2nd | grep IPAddress
 ```
 
-- Connect to the `yasin1st` container.
+- Connect to the `clarus1st` container.
 
 ```bash
-docker container attach yasin1st
+docker container attach clarus1st
 ```
 
-- Show the details of network interface configuration of `yasin1st` container.
+- Show the details of network interface configuration of `clarus1st` container.
 
 ```bash
 ifconfig
@@ -391,59 +403,59 @@ ifconfig
 
 - Compare with two configurations.
 
-- In the `yasin1st` container ping google.com four times to check internet connection.
+- In the `clarus1st` container ping google.com four times to check internet connection.
 
 ```bash
 ping -c 4 google.com
 ```
 
-- Ping `yasin2nd `container by its IP four times to show the connection.
+- Ping `clarus2nd `container by its IP four times to show the connection.
 
 ```bash
 ping -c 4 172.17.0.3
 ```
 
-- Try to ping `yasin2nd `container by its name, should face with bad address. Explain why failed (due to default bridge configuration not works with container names)
+- Try to ping `clarus2nd `container by its name, should face with bad address. Explain why failed (due to default bridge configuration not works with container names)
 
 ```bash
-ping -c 4 yasin2nd
+ping -c 4 clarus2nd
 ```
 
 - Stop and delete the containers
 
 ```bash
-docker container stop yasin2nd
-docker container rm yasin1st yasin2nd
+docker container stop clarus2nd
+docker container rm clarus1st clarus2nd
 ```
 
 # User-defined Network Bridge in Docker:
 
-- Create a bridge network `yasinnet`.
+- Create a bridge network `clarusnet`.
 
 ```bash
-docker network create --driver bridge yasinnet
+docker network create --driver bridge clarusnet
 ```
 
-- List all networks available in Docker, and show the user-defined `yasinnet`.
+- List all networks available in Docker, and show the user-defined `clarusnet`.
 
 ```bash
 docker network ls
 ```
 
-- Show the details of `yasinnet`, and show that there is no container yet.
+- Show the details of `clarusnet`, and show that there is no container yet.
 
 ```bash
-docker network inspect yasinnet
+docker network inspect clarusnet
 ```
 
-- Run four `alpine` containers with interactive shell, in detached mode, name the containers as `yasin1st`, `yasin2nd`, `yasin3rd` and `yasin4th`, and add command to run alpine shell. Here, 1st and 2nd containers should be in `yasinnet`, 3rd container should be in default network bridge, 4th container should be in both `yasinnet` and default network bridge.
+- Run four `alpine` containers with interactive shell, in detached mode, name the containers as `clarus1st`, `clarus2nd`, `clarus3rd` and `clarus4th`, and add command to run alpine shell. Here, 1st and 2nd containers should be in `clarusnet`, 3rd container should be in default network bridge, 4th container should be in both `clarusnet` and default network bridge.
 
 ```bash
-docker container run -dit --network yasinnet --name yasin1st alpine ash
-docker container run -dit --network yasinnet --name yasin2nd alpine ash
-docker container run -dit --name yasin3rd alpine ash
-docker container run -dit --name yasin4th alpine ash
-docker network connect yasinnet yasin4th
+docker container run -dit --network clarusnet --name clarus1st alpine ash
+docker container run -dit --network clarusnet --name clarus2nd alpine ash
+docker container run -dit --name clarus3rd alpine ash
+docker container run -dit --name clarus4th alpine ash
+docker network connect clarusnet clarus4th
 ```
 
 - List all running containers and show there up and running.
@@ -452,10 +464,10 @@ docker network connect yasinnet yasin4th
 docker container ls
 ```
 
-- Show the details of `yasinnet`, and explain newly added containers. (1st, 2nd, and 4th containers should be in the list)
+- Show the details of `clarusnet`, and explain newly added containers. (1st, 2nd, and 4th containers should be in the list)
 
 ```bash
-docker network inspect yasinnet
+docker network inspect clarusnet
 ```
 
 - Show the details of  default network bridge, and explain newly added containers. (3rd and 4th containers should be in the list)
@@ -464,53 +476,53 @@ docker network inspect yasinnet
 docker network inspect bridge
 ```
 
-- Connect to the `yasin1st` container.
+- Connect to the `clarus1st` container.
 
 ```bash
-docker attach yasin1st
+docker attach clarus1st
 ```
 
-- Ping `yasin2nd` and `yasin4th` container by its name to show that in user-defined network, container names can be used in networking.
+- Ping `clarus2nd` and `clarus4th` container by its name to show that in user-defined network, container names can be used in networking.
 
 ```bash
-ping -c 4 yasin2nd
-ping -c 4 yasin4th
+ping -c 4 clarus2nd
+ping -c 4 clarus4th
 ```
 
-- Try to ping `yasin3rd` container by its name and IP, should face with bad address because 3rd container is in different network.
+- Try to ping `clarus3rd` container by its name and IP, should face with bad address because 3rd container is in different network.
 
 ```bash
-ping -c 4 yasin3rd
+ping -c 4 clarus3rd
 ping -c 4 172.17.0.2
 ```
 
-- Exit the `yasin1st` container without stopping and return to ec2-user bash shell.
+- Exit the `clarus1st` container without stopping and return to ec2-user bash shell.
 
-- Connect to the `yasin4th` container, since it is in both network should connect all containers.
+- Connect to the `clarus4th` container, since it is in both network should connect all containers.
 
 ```bash
-docker container attach yasin4th
+docker container attach clarus4th
 ```
 
-- Ping `yasin2nd` and `yasin1st` container by its name, ping `yasin3rd` container with its IP. Explain why used IP, instead of name.
+- Ping `clarus2nd` and `clarus1st` container by its name, ping `clarus3rd` container with its IP. Explain why used IP, instead of name.
 
 ```bash
-ping -c 4 yasin1st
-ping -c 4 yasin2nd
+ping -c 4 clarus1st
+ping -c 4 clarus2nd
 ping -c 4 172.17.0.2
 ```
 
-- Exit from `yasin4th` container. Stop and remove all containers.
+- Exit from `clarus4th` container. Stop and remove all containers.
 
 ```bash
-docker container stop yasin1st yasin2nd yasin3rd yasin4th
-docker container rm yasin1st yasin2nd yasin3rd yasin4th
+docker container stop clarus1st clarus2nd clarus3rd clarus4th
+docker container rm clarus1st clarus2nd clarus3rd clarus4th
 ```
 
-- Delete `yasinnet` network
+- Delete `clarusnet` network
 
 ```bash
-docker network rm yasinnet
+docker network rm clarusnet
 
 # Part-5: Docker Compose Operations:
 

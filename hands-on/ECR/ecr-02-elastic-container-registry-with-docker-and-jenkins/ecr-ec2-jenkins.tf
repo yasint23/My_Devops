@@ -18,11 +18,11 @@ provider "github" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  github-email = "serdar@clarusway.com"                      # you need to change this line
-  github-username = "serdarcw"                              # you need to change this line
-  github-token = ""      # you need to change this line
-  key_pair=""            # you need to change this line
-  pem_key_address = "~/Downloads/serdar.pem"              # you need to change this line
+  github-email = "pakyasin23@gmail.com"                      # you need to change this line
+  github-username = "yasint23"                              # you need to change this line
+  github-token = "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"      # you need to change this line
+  key_pair="yasin"            # you need to change this line
+  pem_key_address = "~/.ssh/yasin.pem"              # you need to change this line
 }
 
 resource "github_repository" "githubrepo" {
@@ -65,7 +65,7 @@ resource "aws_iam_role" "roleforjenkins" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
+        Action = "sts:AssumeRole"        # Bu kisimda policy tanimladik, IAM role atadik,
         Effect = "Allow"
         Sid    = ""
         Principal = {
@@ -76,15 +76,15 @@ resource "aws_iam_role" "roleforjenkins" {
   })
 }
 
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "jenkinsprofile"
+resource "aws_iam_instance_profile" "ec2_profile" {      
+  name = "jenkinsprofile"                             # yukarida tanimladigimiz rolu, olusturdugumuz aws profiline atadik
   role = aws_iam_role.roleforjenkins.name
 }
 
 resource "aws_instance" "jenkins-server" {
   ami             = "ami-087c17d1fe0178315"
   instance_type   = "t2.small"
-  key_name        = local.key_pair  # you need to change this line
+  key_name        = local.key_pair  
   root_block_device {
       volume_size = 16
   } 
@@ -92,7 +92,7 @@ resource "aws_instance" "jenkins-server" {
   tags = {
     Name = "Jenkins-Server"
   }
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name    #yukarida olusturdugmuz profili instance attach yapiyoruz
   user_data            = <<-EOF
           #! /bin/bash
           # install git
@@ -117,7 +117,7 @@ resource "aws_instance" "jenkins-server" {
           # add ec2-user and jenkins users to docker group 
           usermod -a -G docker ec2-user
           usermod -a -G docker jenkins
-          # configure docker as cloud agent for jenkins
+          # configure docker as cloud agent for jenkins (# Dockeri jenkins'e agent olarak tanimladigimiz icin asagidaki configurasyone gerek duyuldu)
           cp /lib/systemd/system/docker.service /lib/systemd/system/docker.service.bak
           sed -i 's/^ExecStart=.*/ExecStart=\/usr\/bin\/dockerd -H tcp:\/\/127.0.0.1:2375 -H unix:\/\/\/var\/run\/docker.sock/g' /lib/systemd/system/docker.service
           # systemctl daemon-reload

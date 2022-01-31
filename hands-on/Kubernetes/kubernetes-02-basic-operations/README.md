@@ -1,26 +1,12 @@
 # Hands-on Kubernetes-02 : Kubernetes Basic Operations
 
-Purpose of the this hands-on training is to give students the knowledge of basic operations in Kubernetes cluster.
-
 ## Learning Outcomes
-
-At the end of the this hands-on training, students will be able to;
 
 - Learn basic operations of nodes, pods, deployments, replicasets in Kubernetes
 
 - Learn how to update and rollback deployments in Kubernetes
 
 - Learn uses of namespace in Kubernetes
-
-## Outline
-
-- Part 1 - Setting up the Kubernetes Cluster
-
-- Part 2 - Basic Operations in Kubernetes
-
-- Part 3 - Deployment Rolling Update and Rollback in Kubernetes
-
-- Part 4 - Namespaces in Kubernetes
 
 ## Part 1 - Setting up the Kubernetes Cluster
 

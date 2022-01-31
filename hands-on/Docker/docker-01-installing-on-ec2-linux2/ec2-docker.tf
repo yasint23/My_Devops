@@ -46,7 +46,7 @@ resource "aws_security_group" "allow_ssh" {
 }
 
 resource "aws_instance" "tf-ec2" {
-  ami           = "ami-087c17d1fe0178315"
+  ami           = "ami-0ed9277fb7eb570c9"
   instance_type = var.instance-type
   key_name = "yasin"
   vpc_security_group_ids = [ aws_security_group.allow_ssh.id ]
