@@ -8,23 +8,23 @@ This project aims to deploy the Phonebook Application web application with Docke
 
 ![Project_204](project-204.png)
 
-- Your company has recently started a project that aims to serve as phonebook web application. Your teammates have started to work on the project and developed the UI and backend part of the project and they need your help to deploy the app in development environment.
+- The company has recently started a project that aims to serve as phonebook web application. My teammates have started to work on the project and developed the UI and backend part of the project and they need your help to deploy the app in development environment.
 
-- You are, as a Cloud/DevOps engineer, requested to deploy the Phonebook Application in the development environment on Docker Swarm on AWS EC2 Instances using Terraform to showcase the project. To do that you need to;
+- I requested to deploy the Phonebook Application in the development environment on Docker Swarm on AWS EC2 Instances using Terraform to showcase the project. To do that I;
 
-  - Create a new public repository for the project on GitHub.
+  - Created a new public repository for the project on GitHub.
 
-  - Create docker image using the `Dockerfile` from the base image of `python:alpine`.
+  - Created docker image using the `Dockerfile` from the base image of `python:alpine`.
 
   - Deploy the app on swarm using `docker compose`. To do so on the `Compose` file;
 
-    - Create a MySQL database service with one replica using the image of `mysql:5.7`;
+    - Created a MySQL database service with one replica using the image of `mysql:5.7`;
 
       - attach a named volume to persist the data of database server.
 
       - attach `init.sql` file to initialize the database using `configs`.
 
-    - Configure the app service to;
+    - Configured the app service to;
 
       - pull the image of the app from the AWS ECR repository.
 
@@ -32,11 +32,11 @@ This project aims to deploy the Phonebook Application web application with Docke
 
       - run the app on `port 80`.
 
-    - Use a user-defined overlay network for the services.
+    - Used a user-defined overlay network for the services.
 
   - Push the necessary files for your project from local repo to the new github repo (phonebookswarm).
 
-- You are also requested; to use AWS ECR as image repository, to create Docker Swarm with 3 manager and 2 worker node instances, to automate the process of Docker Swarm initialization through Terraform in the development environment. To achieve this goals, you can configure Terraform configuration file using the followings;
+- I am also requested; to use AWS ECR as image repository, to create Docker Swarm with 3 manager and 2 worker node instances, to automate the process of Docker Swarm initialization through Terraform in the development environment. To achieve this goals, I configured Terraform configuration file using the followings;
 
   - The application should run on Amazon Linux 2 EC2 Instance
 
@@ -91,45 +91,32 @@ This project aims to deploy the Phonebook Application web application with Docke
 ```text
 204-docker-swarm-deployment-of-phonebook-app-on-python-flask-mysql (folder)
 |
-|----readme.md            # Given to the students (Definition of the project)
-|----cfn-template.yml     # To be delivered by students (Cloudformation template-Optional)
-|----phonebook-app.py     # Given to the students (Python Flask Web Application)
-|----requirements.txt     # Given to the students (List of Flask Modules/Packages)
-|----init.sql             # Given to the students (SQL statements to initialize db)
-|----main.tf              # To be delivered by students (Terraform configuration file)
-|----Dockerfile           # To be delivered by students
-|----docker-compose.yml   # To be delivered by students
+|----readme.md            # (Definition of the project)
+|----cfn-template.yml     # (Cloudformation template-Optional)
+|----phonebook-app.py     # Given  (Python Flask Web Application)
+|----requirements.txt     # Given  (List of Flask Modules/Packages)
+|----init.sql             # Given  (SQL statements to initialize db)
+|----main.tf              # To be delivered (Terraform configuration file)
+|----Dockerfile           # To be delivered 
+|----docker-compose.yml   # To be delivered 
 |----templates
-        |----index.html      # Given to the students (HTML template)
-        |----add-update.html # Given to the students (HTML template)
-        |----delete.html     # Given to the students (HTML template)
+        |----index.html      # Given  (HTML template)
+        |----add-update.html # Given  (HTML template)
+        |----delete.html     # Given  (HTML template)
 ```
+
+## Project Steps:
+
+- Creating Docker File : For the create alpine image
+- Create docker-compose.yaml: For the services we need (database and app server) 
+- Push to my github Dockerfile and docker-compose
+
 
 ## Expected Outcome
 
 ![Phonebook App Search Page](./search-snapshot.png)
 
-### At the end of the project, following topics are to be covered;
-
-- Docker Swarm Deployment
-
-- Web App and MySQL Database Configuration in Docker Swarm
-
-- Bash scripting
-
-- AWS ECR as Image Repository
-
-- AWS IAM Policy and Role Configuration
-
-- AWS EC2 Configuration
-
-- AWS EC2 Security Group Configuration
-
-- Terraform Configuration File
-
-- Git & Github for Version Control System
-
-### At the end of the project, students will be able to;
+### At the end of the project,
 
 - demonstrate how to configure Dockerfile and docker-compose files.
 

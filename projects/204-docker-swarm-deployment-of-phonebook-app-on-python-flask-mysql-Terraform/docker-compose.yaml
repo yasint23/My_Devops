@@ -1,0 +1,41 @@
+version: "3.7"                                  # Components: version-services-networks-volume-config others are attributes
+
+services:
+    database:                                    # Get information from hub.docker.com how create database container/requrirements-environment
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: P123456p
+            MYSQL_DATABASE: phonebook_db
+            MYSQL_USER: admin
+            MYSQL_PASSWORD: Ysn123456
+        volumes:
+            - db-data:/var/lib/mysql           # referring volume to create volume section written below
+        configs:
+            - source: table
+              target: /docker-entrypoint-initdb.d/init.sql
+        networks:
+            - ysn-net                         # userdefined overlay network; for container to connect each other and with database but not to talk outside
+    app-server:      
+        env_file: .env                        # not use ready image, I will customize the image pull from repo so we need to put env-var
+        image: "${ECR_REPO}:latest"
+        deploy:                               # app to run inside of all container
+            mode: global
+            update_config:
+                parallelism: 2
+                delay: 5s
+                order: start-first
+        ports:                               # app-server will talk to the outside from this port
+            - "80:80"
+        networks:
+            - ysn-net
+networks:                                   # For the connection ofdatabase and app-server
+    clarusnet:
+        driver: overlay
+
+volumes:                                   # For the database 
+    db-data:
+
+configs:
+    table:
+        file: ./init.sql              # For the create initial table for database
+
