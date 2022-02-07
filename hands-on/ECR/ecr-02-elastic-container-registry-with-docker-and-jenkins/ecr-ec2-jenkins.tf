@@ -20,7 +20,7 @@ data "aws_caller_identity" "current" {}
 locals {
   github-email = "pakyasin23@gmail.com"                      # you need to change this line
   github-username = "yasint23"                              # you need to change this line
-  github-token = "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"      # you need to change this line
+  github-token = "xxxxxxxxxxxxxxxxx"      # you need to change this line
   key_pair="yasin"            # you need to change this line
   pem_key_address = "~/.ssh/yasin.pem"              # you need to change this line
 }

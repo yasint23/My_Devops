@@ -1,0 +1,124 @@
+## Part 1 - Install Ansible Linux machine
+
+```bash
+sudo yum update -y
+sudo amazon-linux-extras install ansible2
+```
+- To confirm the successful installation of Ansible, run the following command.
+
+```bash
+$ ansible --version
+```
+### Configure Ansible on the Control Node
+
+```bash
+$ sudo su
+$ cd /etc/ansible
+$ ls
+$ vim hosts
+
+[webservers]
+node1 ansible_host=<node1_ip> ansible_user=ec2-user
+node2 ansible_host=<node2_ip> ansible_user=ec2-user
+
+[all:vars]
+ansible_ssh_private_key_file=/home/ec2-user/<pem file>
+```
+
+- Copy your pem file to the /etc/ansible/ directory. First, go to your pem file directory on your local PC and run the following command.
+
+```bash
+$ scp -i <pem file> <pem file> ec2-user@<public DNS name of Control Node>:/home/ec2-user
+```
+
+- To confirm that all our hosts are located by Ansible, we will run the commands below.
+
+$ ansible all --list-hosts
+$ ansible webservers --list-hosts
+```
+- To make sure that all our hosts are reachable, we will run various ad-hoc commands that use the ping module.
+
+```bash
+$ ansible all -m ping
+$ ansible webservers -m ping
+$ ansible node1 -m ping
+```
+- "ansible-doc <module_name>" command is used for seeing the explanation and examples of a specific module.
+
+```bash
+$ ansible-doc ping    # ping ile alakali bilgiler, describe ping gibi 
+
+```bash
+$ ansible all -m ping -o
+```
+-  ```-o``` Show one line
+
+```bash
+$ ansible --help
+```
+
+```bash
+$ ansible webservers -a "uptime"
+```
+```bash
+$ ansible webservers -a 'df -h'
+```
+
+```bash
+$ vi testfile    # Create a text file name "testfile"
+  "This is a test file."
+
+```bash
+$ ansible webservers -m copy -a "src=/home/ec2-user/testfile dest=/home/ec2-user/testfile"
+$ ansible node1 -m shell -a "echo Hello yasin > /home/ec2-user/testfile2 ; cat testfile2"
+```
+- See the Node has the files and their content.
+$ ansible node1 -a "ls"
+```
+$ ansible node1:node2 -m shell -a "echo Hello Clarusway > /home/ec2-user/testfile3"
+$ ansible node2 -a "cat testfile3"
+```
+
+```bash
+ansible webservers -b -m shell -a "amazon-linux-extras install -y nginx1 ; systemctl start nginx ; systemctl enable nginx" 
+``` -b: root yetkisi install icin gerekiyordu
+
+```bash
+$ ansible node3 -b -m shell -a "apt update -y ; apt-get install -y nginx ; systemctl start nginx; systemctl enable nginx"
+```
+```bash
+$ ansible webservers -b -m shell -a "yum -y remove nginx"
+```
+
+### Using Yum and Package Module
+```bash
+$ ansible webservers -b -m yum -a "name=nginx state=present"     # Do it twice to be green 
+```
+
+-  Difference of the standard outputs. Emphasize the changes in color and ```changed``` property together with idempotency. 
+
+```bash
+$ ansible -b -m package -a "name=nginx state=present" all   # nginx installed to the all servers
+```
+- The difference of ```yum``` and ```package``` 
+# package will install according to the requirements of "OS", You can say all no need to mention yum or apt according to services.
+
+### Using Your Own Inventory
+
+- Create a file named ```inventory```. 
+
+```bash
+$ vim inventory
+
+[webservers]
+node1 ansible_host=<node1_ip> ansible_user=ec2-user
+
+[webservers:vars]
+ansible_ssh_private_key_file=/home/ec2-user/<YOUR-PEM-FILE-NAME>.pem
+```
+
+- Install/uninstall Apache server to node1.
+
+```bash
+ansible -i inventory -b -m yum -a "name=httpd state=present" node1    # -i use this inventory
+ansible -i inventory -b -m yum -a "name=httpd state=absent" node1 
