@@ -1,13 +1,4 @@
 # Hands-on Ansible-02 : Using Playbook with Tasks
-
-Purpose of the this hands-on training is to give students the knowledge of basic Ansible skills.
-
-## Learning Outcomes
-
-At the end of the this hands-on training, students will be able to;
-
-- Learn ansible playbooks.
-
 ## Outline
 
 - Part 1 - Install ansible

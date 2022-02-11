@@ -14,16 +14,6 @@ At the end of the this hands-on training, students will be able to;
 
 - Understand the Need for Metric Server
 
-## Outline
-
-- Part 1 - Setting up the Kubernetes Cluster
-
-- Part 2 - Outline of the Hands-on Setup
-
-- Part 3 - Microservices
-
-- Part 4 - Autoscaling in Kubernetes
-
 ## Part 1 - Setting up the Kubernetes Cluster
 
 - Launch a Kubernetes Cluster of Ubuntu 20.04 with two nodes (one master, one worker) using the [Cloudformation Template to Create Kubernetes Cluster](../kubernetes-02-basic-operations/cfn-template-to-create-k8s-cluster.yml). *Note: Once the master node up and running, worker node automatically joins the cluster.*

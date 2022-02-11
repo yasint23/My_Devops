@@ -1,5 +1,5 @@
-//This Terraform Template creates 4 Ansible Machines on EC2 Instances
-//Ansible Machines will run on Amazon Linux 2 and Ubuntu 20.04 with custom security group
+//This Terraform Template creates 3 Ansible Machines on EC2 Instances
+//Ansible Machines will run on Amazon Linux 2 with custom security group
 //allowing SSH (22) and HTTP (80) connections from anywhere.
 //User needs to select appropriate key name when launching the instance.
 
@@ -26,27 +26,15 @@ resource "aws_instance" "amazon-linux-2" {
   ami = "ami-0a8b4cd432b1c3063"
   instance_type = "t2.micro"
   count = 3
-  key_name = "yasin"
-  security_groups = ["ansible-session-sec-gr"]
+  key_name = "oliver"
+  security_groups = ["ansible-session-3-sec-gr"]
   tags = {
     Name = element(var.tags, count.index)
   }
 }
 
-
-resource "aws_instance" "ubuntu" {
-  ami = "ami-04505e74c0741db8d"
-  instance_type = "t2.micro"
-  key_name = "yasin"
-  security_groups = ["ansible-session-sec-gr"]
-
-tags = {
-  Name = "node_3"
-}
-}
-
 resource "aws_security_group" "tf-sec-gr" {
-  name = "ansible-session-sec-gr"
+  name = "ansible-session-3-sec-gr"
   tags = {
     Name = "ansible-session-sec-gr"
   }
@@ -79,7 +67,7 @@ resource "null_resource" "config" {
     host = aws_instance.amazon-linux-2[0].public_ip
     type = "ssh"
     user = "ec2-user"
-    private_key = file("~/.ssh/yasin.pem")
+    private_key = file("~/oliver.pem")
     }
 
   provisioner "file" {
@@ -88,8 +76,8 @@ resource "null_resource" "config" {
 }
 
   provisioner "file" {
-    source = "~/.ssh/yasin.pem"
-    destination = "/home/ec2-user/yasin.pem"
+    source = "~/oliver.pem"
+    destination = "/home/ec2-user/oliver.pem"
   }
 
   provisioner "remote-exec" {
@@ -98,14 +86,12 @@ resource "null_resource" "config" {
       "sudo yum update -y",
       "sudo amazon-linux-extras install ansible2 -y",
       "echo [webservers] >> inventory.txt",
-      "echo node1  ansible_host=${aws_instance.amazon-linux-2[1].private_ip}  ansible_ssh_private_key_file=~/.ssh/yasin.pem ansible_user=ec2-user >> inventory.txt",
-      "echo node2 ansible_host=${aws_instance.amazon-linux-2[2].private_ip}  ansible_ssh_private_key_file=~/.ssh/yasin.pem ansible_user=ec2-user >> inventory.txt",
-      "echo [ubuntuservers] >> inventory.txt",
-      "echo node3 ansible_host=${aws_instance.ubuntu.private_ip}  ansible_ssh_private_key_file=~/.ssh/yasin.pem ansible_user=ubuntu >> inventory.txt",
-      "chmod 400 yasin.pem"
+      "echo node1  ansible_host=${aws_instance.amazon-linux-2[1].private_ip}  ansible_ssh_private_key_file=~/oliver.pem ansible_user=ec2-user >> inventory.txt",
+      "echo [dbservers] >> inventory.txt",
+      "echo node2 ansible_host=${aws_instance.amazon-linux-2[2].private_ip} ansible_ssh_private_key_file=~/oliver.pem ansible_user=ec2-user >> inventory.txt",
+      "chmod 400 oliver.pem"
     ]
   }
-
 }
 
 output "controlnodeip" {

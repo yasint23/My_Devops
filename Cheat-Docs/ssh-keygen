@@ -1,0 +1,13 @@
+- ec2 terminalinda asagidaki komutu calistirarak keygen files olusturuyoruz.
+ssh-keygen -f ~/.ssh/id_rsa
+
+- .ssh folder icerisinde 3 dosya var.
+
+authorized_keys: AWS de kurdugum pem key icerigi var
+id_rsa: private key 
+id_rsa.pub: public key var.
+
+- Localden ssh -i yasin.pem ile baglanirken yasin.pem icerigi authorized_keys icerisine kopyaliyor. 
+
+
+

@@ -1,25 +1,10 @@
 # Hands-on EKS-01 : Creating and Managing Kubernetes Cluster with AWS EKS
 
-Purpose of this hands-on training is to give students the knowledge of how to use AWS Elastic Kubernetes Service
-
-
 ## Learning Outcomes
 
 At the end of this hands-on training, students will be able to;
 
 - Learn to Create and Manage EKS Cluster with Worker Nodes
-
-## Outline
-
-- Part 1 - Creating the Kubernetes Cluster on EKS
-
-- Part 2 - Creating a kubeconfig file
-
-- Part 3 - Adding Worker Nodes to the Cluster
-
-- Part 4 - Configuring Cluster Autoscaler
-
-- Part 5 - Deploying a Sample Application
 
 ## Prerequisites
 
@@ -158,9 +143,10 @@ $ aws eks list-clusters
 
 3. Show the content of the $HOME directory including hidden files and folders. If there is a ```.kube``` directory, show what it has inside.  
 
-4. Run the command
+4. Run the command for local to talk with cluster
 ```bash
-aws eks --region <us-east-1> update-kubeconfig --name <cluster_name>
+aws eks --region us-east-1 update-kubeconfig --name yasin-eks 
+cat config  # See the config file (kubectl looks this file) 
 ``` 
 
 5. Explain what the above command does.
@@ -287,7 +273,7 @@ This command will open the yaml file for your editting. Replace <CLUSTER NAME> v
 
 7. Find an appropriate version of your cluster autoscaler in the [link](https://github.com/kubernetes/autoscaler/releases). The version number should start with version number of the cluster Kubernetes version. For example, if you have selected the Kubernetes version 1.19, you should find something like ```1.19.6```.
 
-8. Then, in the following command, set the Cluster Autoscaler image tag as that version you have found in the previous step.
+8. Then, in the following command, set the Cluster Autoscaler image tag as that version you have found in the previous step. (Image guncelliyoruz)
 ```bash
 kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:<YOUR-VERSION-HERE>
 ```
@@ -301,7 +287,7 @@ You can also replace ```us``` with ```asia``` or ```eu```.
 kubectl create namespace my-namespace
 ```
 
-2. Create a .yml file in your local environment with the following content.
+ Create a .yml file in your local environment with the following content.
 
 ```yaml
 kind: Namespace
@@ -352,17 +338,59 @@ spec:
         - containerPort: 80
 ```
 
-3. Deploy the application with following command.
+2. Deploy the application with following command.
 ```bash
 kubectl apply -f <your-sample-app>.yaml
 ```
 
-4. Run the command below.
+3. Run the command below.
 ```bash
 kubectl -n my-namespace get svc
 ```
 
 5. Get the ```External IP``` value from the previous command's output and visit that ip.
 
+4. Show that service remains in pending state. Describe service object and analyze it. 
 
-6. Atfer clean-up `worker nodes` and `cluster`, delete the `LoadBalancer` manually.
+```bash
+kubectl describe service container-info-svc -n my-namespace
+```
+Show the warning: "Error creating load balancer (will retry): failed to ensure load balancer for service default/guestbook: could not find any suitable subnets for creating the ELB"
+
+5. Go to this [link](https://aws.amazon.com/tr/premiumsupport/knowledge-center/eks-vpc-subnet-discovery/). Explain that it is necessary to tag selected subnets as follows: 
+
+- Key: kubernetes.io/cluster/<cluster-name>
+- Value: shared
+
+6. Go to the VPC service on AWS console and select "subnets". On the ```Subnets``` page select "Tags" tab and add this tag:
+
+- Key: kubernetes.io/cluster/<cluster-name>
+- Value: shared
+
+
+7. Describe service object and analyze it.
+
+```bash
+kubectl describe service container-info-svc -n my-namespace
+```
+
+8. Get the ```External IP``` value from the previous command's output and visit that ip.
+
+9. For scale up edit deployment. Change "replicas=30" in .yaml file. Save the file.
+
+```bash
+kubectl edit deploy container-info-deploy -n my-namespace
+```
+10. Watch the pods while creating. Show that some pods are pending state.
+```bash
+kubectl get po -n my-namespace -w
+```
+11. Describe one of the pending pods. Show that there is no resource to run pods. So cluster-autoscaler scales out and create one more node.
+
+```bash
+kubectl describe pod container-info-deploy-xxxxxx -n my-namespace
+kubectl get nodes
+```
+
+12. Atfer clean-up `worker nodes` and `cluster`, delete the `LoadBalancer` manually.
+
