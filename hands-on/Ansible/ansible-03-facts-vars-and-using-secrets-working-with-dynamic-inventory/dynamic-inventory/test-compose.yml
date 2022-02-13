@@ -1,0 +1,15 @@
+- name: display compose part
+  hosts: aws_ec2
+  become: true
+  tasks:
+    - debug:
+        msg: "private_ip is {{ foo }}"
+
+    - debug:
+        msg: "instance_id is {{ boo }}"
+
+    - debug:
+        msg: "my key pem is {{ key }}"
+
+    - debug:
+        msg: "host is {{ ansible_host }}"

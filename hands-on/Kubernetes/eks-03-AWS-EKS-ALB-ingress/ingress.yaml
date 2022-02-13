@@ -16,31 +16,27 @@ metadata:
     alb.ingress.kubernetes.io/healthy-threshold-count: '2'
     alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
     # To use certificate add annotations below.
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:046402772087:certificate/dae75cd6-8d82-420c-bed1-1ea132ec3d37
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:452889875890:certificate/f0130003-f3b3-434b-99d9-230f9007f5e4
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
 spec:
   rules:
-    - host: clarusshop.clarusway.us
-      http:
-        paths:
-          - path: /* # SSL Redirect Setting
-            backend:
-                serviceName: ssl-redirect
-                servicePort: use-annotation         
-          - path: /account
-            backend:
-              serviceName: account-service
-              servicePort: 80
-          - path: /inventory
-            backend:
-              serviceName: inventory-service
-              servicePort: 80
-          - path: /shipping
-            backend:
-              serviceName: shipping-service
-              servicePort: 80
-          - path: /
-            backend:
-              serviceName: storefront-service
-              servicePort: 80
+  - host: www.devopsyasin.com
+  - http:
+      paths:
+      - path: /account
+        backend:
+            serviceName: account-service
+            servicePort: 80
+      - path: /inventory
+        backend:
+            serviceName: inventory-service
+            servicePort: 80
+      - path: /shipping
+        backend:
+            serviceName: shipping-service
+            servicePort: 80
+      - path: /
+        backend:
+          serviceName: storefront-service
+          servicePort: 80

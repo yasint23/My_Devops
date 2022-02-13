@@ -7,7 +7,14 @@ authorized_keys: AWS de kurdugum pem key icerigi var
 id_rsa: private key 
 id_rsa.pub: public key var.
 
-- Localden ssh -i yasin.pem ile baglanirken yasin.pem icerigi authorized_keys icerisine kopyaliyor. 
 
+***
+SECURE COPY:We run command from the local .ssh folder path for copy from both side.
+
+From Local to ec2
+scp -i yasin.pem ~/My_Devops/hands-on/Kubernetes/ingress.yaml ec2-user@3.87.222.126(publicIP):/home/ec2-user/
+
+From ec2 to local
+scp -i yasin.pem -r ec2-user@(publicIP):/home/ec2-user/folder ~/My_Devops  #Klasor kopyaliyoruz -r
 
 

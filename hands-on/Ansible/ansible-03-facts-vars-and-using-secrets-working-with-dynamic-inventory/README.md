@@ -1,7 +1,5 @@
 # Hands-on Ansible-03 : Using facts, vars and secrets
 
-Purpose of the this hands-on training is to give students the knowledge of ansible facts gathering and working with secret values.
-
 ## Learning Outcomes
 
 At the end of this hands-on training, students will be able to;
@@ -9,23 +7,11 @@ At the end of this hands-on training, students will be able to;
 - Explain how and what facts gathering and how to use it in the playbook
 - Learn how to deal with secret values with ansible-vault
 
-## Outline
-
-- Part 1 - Install Ansible
-
-- Part 2 - Ansible Facts
-
-- Part 3 - Working with sensitive data
-
-
 ## Part 1 - Install Ansible
-
-
 - Spin-up 3 Amazon Linux 2 instances and name them as:
     1. control node
     2. node1 ----> (SSH PORT 22, HTTP PORT 80)
     3. node2 ----> (SSH PORT 22, HTTP PORT 80)
-
 
 - Connect to the control node via SSH and run the following commands.
 
@@ -40,7 +26,7 @@ sudo amazon-linux-extras install ansible2
 
 ```bash
 $ ansible --version
-```
+
 Stdout:
 ```
 ansible 2.9.12
@@ -79,15 +65,13 @@ node2 ansible_host=<node2_ip> ansible_user=ec2-user
 
 [all:vars]
 ansible_ssh_private_key_file=/home/ec2-user/<pem file>
-```
 
-- Explain what ```ansible_host```, ```ansible_user``` and ansible_ssh_key_file parameters are. For this reason visit the Ansible's [inventory parameters web site](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#connecting-to-hosts-behavioral-inventory-parameters).
+- Ansible Config dosyasinda pembe uyari satirlari gostermesin diye
+#module_set_locale = False line altina sunu ekliyoruz;
+interpreter_python=auto_silent
 
-- Explain what an ```alias``` (node1 and node2) is and where we use it.
-
-- Explain what ```[webservers] and [all:vars]``` expressions are. Elaborate the concepts of [group name](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#inventory-basics-formats-hosts-and-groups), [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) and [default groups](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#default-groups). 
-
-- Visit the above links for helping to understand the subject. 
+#Asagidaki line uncomment yapiyoruz (Baglanirken onay sormasin)
+host_key_checking = False
 
 - Copy your pem file to the /home/ec2-user directory. First, go to your pem file directory on your local PC and run the following command.
 
@@ -96,15 +80,10 @@ $ scp -i <pem file> <pem file> ec2-user@<public DNS name of Control Node>:/home/
 ```
 - Check if the file is transferred to the remote machine. 
 
-- As an alternative way, create a file on the control node with the same name as the <pem file> in ```/etc/ansible``` directory. 
-
-- Then copy the content of the pem file and paste it in the newly created pem file on the control node.
-
 - To make sure that all our hosts are reachable, we will run various ad-hoc commands that use the ping module.
 
 ```bash
 $ chmod 400 <pem file>
-```
 
 ```bash
 $ ansible all -m ping -o
@@ -116,7 +95,12 @@ $ ansible all -m ping -o
 
 ```bash
 $ ansible node1 -m setup
-```
+$ ansible node1 -m setup | grep ansible_os_family
+$ ansible all -m setup | grep ansible_hostname
+outs
+        "ansible_hostname": "ip-172-31-94-71", 
+        "ansible_hostname": "ip-172-31-93-240",
+
 ```
 ec2-34-201-69-79.compute-1.amazonaws.com | SUCCESS => {
     "ansible_facts": {
@@ -138,29 +122,49 @@ ec2-34-201-69-79.compute-1.amazonaws.com | SUCCESS => {
         "ansible_board_serial": "NA",
 ```
 - create a playbook named "facts.yml"
-
+```
 ```yml
 - name: show facts
   hosts: all
   tasks:
     - name: print facts
-      debug:
+      debug:             #Ekrana birsey yazdirmak icin kullanilan bir module
+      msg: >      
         var: ansible_facts
 ```
-- run the play book
 
 ```bash
 $ ansible-playbook facts.yml
-```
 
+- We can add more tasks to the "facts.yml"
+
+```
+```yml
+- name: show facts
+  hosts: all
+  tasks:
+    - name: print facts
+      debug:                
+        var: ansible_facts
+    
+    - name: debug deneme
+      shell: "ls -al"
+        var: result
+        
+    - name: display output
+      debug: 
+        msg: "{{ result.stdout_lines }}"
+```
+```bash
+$ ansible-playbook facts.yml
+```
 - create a playbook named "ipaddress.yml"
 
 ```yml
 - hosts: all
   tasks:
   - name: show IP address
-    debug:
-      msg: >
+    debug:               
        This host uses IP address {{ ansible_facts.default_ipv4.address }}
 
 ```
@@ -200,13 +204,16 @@ $ cat secret.yml
 ```
 - how to use it:
 
+- To see the secrets;
+$ ansible-vault view secret.yaml
+
 - create a file named "create-user"
 
 ```bash
 $ nano create-user.yml
-
 ```
 
+```
 ```yml
 - name: create a user
   hosts: all
@@ -296,12 +303,14 @@ $ nano create-user-1.yml
     - name: creating user
       user:
         name: "{{ username }}"
-        password: "{{ pwhash | password_hash ('sha512') }}"     
+        password: "{{ pwhash | password_hash ('sha512') }}"  
+        
+    - debug:
+        msg: "user name is {{ username | upper }}"
+
+    - debug:
+        msg: "{{ [1, 2, 3, 4] | min }}"   
 ``` 
-
-- run the plaaybook
-
-
 ```bash
 $ ansible-playbook --ask-vault-pass create-user-1.yml
 ```
@@ -325,28 +334,11 @@ tyler:#665fffgkg6&fkg689##2£6466?%^^+&%+:18569:0:99999:7:::
 
 # Hands-on Ansible-04: Working with Dynamic Inventory Using EC2 Plugin
 
-The purpose of this hands-on training is to give students the knowledge of using dynamic inventory.
-
 ## Learning Outcomes
 
-At the end of this hands-on training, students will be able to;
-
-- Explain what is dynamic inventory
 - Explain how to use dynamic inventory with EC2 plugin.
 
 ![ho-05](ho-05.png)
-
-
-## Outline
-
-- Part 1 - Build the Infrastructure
-
-- Part 2 - Install Ansible on the Controller Node
-
-- Part 3 - Pinging the Target Nodes with static inventory
-
-- Part 4 - Working with dynamic inventory
-
 
 ## Part 1 - Build the Infrastructure
 
@@ -465,13 +457,21 @@ $ ansible-playbook ping-playbook.yml
 
 - Explain the output of the above command.
 
-- Change the inventory's value in ansible.cfg file to inventory.txt. 'inventory=/home/ec2-user/dynamic-inventory/inventory.txt'
+- Change the inventory's value in ansible.cfg file to inventory.txt.
+'inventory=/home/ec2-user/dynamic-inventory/inventory.txt'
+or 
+inventory=inventory.txt
 
 - Run the command below for pinging the servers.
 
 ```bash
 $ ansible-playbook ping-playbook.yml
 ```
+When command run inside dynamic-inventory it will run inventory.txt but
+if we run /home/ec2-user directory it will run default /etc/ansible/hosts.
+
+>> This methos is useful because without changing default values you will make directory and execute from there with your inventory defined servers <<
+
 ## Part4 - Working with dynamic inventory
 
 - go to AWS Management Consol and select the IAM roles:
@@ -488,7 +488,7 @@ $ ansible-playbook ping-playbook.yml
 
 ```bash
 $ sudo yum install pip
-$ pip install --user boto3 botocore
+$ pip install --user boto3 botocore 
 ```
 
 - Create another file named ```inventory_aws_ec2.yml``` in the project directory.

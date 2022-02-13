@@ -106,17 +106,18 @@ aws configure
 ```bash
 
 eksctl create cluster \
- --name mycluster \
- --version 1.18 \
- --region us-east-2 \
- --nodegroup-name my-nodes \
+ --name yasin-cluster \
+ --region us-east-1 \
+ --zones=us-east-1a,us-east-1b,us-east-1c,us-east-1d\
+ --nodegroup-name yasin-nodes \
  --node-type t2.medium \
- --nodes 1 \
- --nodes-min 1 \
- --nodes-max 2 \
+ --nodes 2 \
+ --nodes-min 2 \
+ --nodes-max 3 \
  --ssh-access \
- --ssh-public-key  ~/.ssh/id_rsa.pub \
+ --ssh-public-key  ~/.ssh/id_rsa.pub \   # eks-client ec2 nodelar ile bu sekilde keypem uzerinden irtibat kuruyor
  --managed
+
 
 or 
 
@@ -135,6 +136,44 @@ $ eksctl create cluster --help
 ## Part 3 - Ingress and AWS LoadBalancer Controller (ALB)
 
 - Firstly, we deploy the AWS Load Balancer Controller to our Amazon EKS cluster according to [AWS Load Balancer Controller user guide](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
+
+- Web sitesinden 1. adimi aynen calistir. ("resource ler aws servicelerine ulasmasi icin 'iam policy dosyasi idirmis oluyoruz')
+
+curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.3.1/docs/install/iam_policy.json
+
+- 2.adimda yazan comutu calistiriyoruz degsiklik yapmadan.
+
+aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy.json  
+
+- 3.adimda kirimizi yerlerde cluster name, rakamlar olan yere aws account id mi girecegiz
+
+eksctl create iamserviceaccount \
+  --cluster=yasin-cluster \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --attach-policy-arn=arn:aws:iam::452889875890:policy/AWSLoadBalancerControllerIAMPolicy \
+  --override-existing-serviceaccounts \
+  --approve
+
+- Bu adimda error yazan yeri kopayalayip sonuna --approve yaziyoruz.
+
+eksctl utils associate-iam-oidc-provider --region=us-east-1 --cluster=yasin-cluster --approve
+
+- Bu adimda 3.adimdaki komutu tekrar calistiriyoruz bu defa calisacak
+
+- Websitesinde 4. adimi kopyalayip calsitiriyoruz
+
+kubectl get deployment -n kube-system alb-ingress-controller
+
+Burada "Error from server (NotFound): deployments.apps "alb-ingress-controller" not found" sonucunu aldiysak direk 5. adima geciyoruz.
+
+- 5.adim da helm ile yukluyoruz, run commands below
+
+helm repo add eks https://aws.github.io/eks-charts
+
+helm repo update
 
 #####
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
@@ -272,18 +311,19 @@ metadata:
     alb.ingress.kubernetes.io/healthcheck-port: traffic-port
     #Important Note:  Need to add health check path annotations in service level if we are planning to use multiple targets in a load balancer    
     #alb.ingress.kubernetes.io/healthcheck-path: /usermgmt/health-status
+    # Healthcheck tanimlamadigimiz icin manual olarak aws console >> Target groups >> Edit healthcheck settings de her path icin /accounts /inventory etc. yazinca health check bakacagi yeri bilecek, butun pathleeri tanitmak gerek yoksa unhealthy gosteriyordu.
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: '15'
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
     alb.ingress.kubernetes.io/success-codes: '200'
     alb.ingress.kubernetes.io/healthy-threshold-count: '2'
     alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
-    # To use certificate add annotations below.
+    # To use certificate add annotations below. put your own certificate arn
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:046402772087:certificate/dae75cd6-8d82-420c-bed1-1ea132ec3d37
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
 spec:
   rules:
-    - host: clarusshop.clarusway.us
+    - host: www.devopsyasin.com    # put your domain address (root53 de www.devopsyasin.com diye record olusturdum) 
       http:
         paths:
           - path: /* # SSL Redirect Setting
@@ -307,7 +347,6 @@ spec:
               serviceName: storefront-service
               servicePort: 80
 ```
-
 - Update the ingress.
 
 ```bash
@@ -324,7 +363,7 @@ Output:
 
 ```bash
 NAME                 CLASS    HOSTS                     ADDRESS                                                                  PORTS   AGE
-ingress-clarusshop   <none>   clarusshop.clarusway.us   k8s-default-ingressc-38a2e90a69-1914587084.us-east-2.elb.amazonaws.com   80      16m
+ingress-clarusshop   <none>   www.devopsyasin.com       k8s-default-ingressc-38a2e90a69-1914587084.us-east-2.elb.amazonaws.com   80      16m
 ```
 
 - Create an `A record` for your host on `route53 service` like `clarusshop.<host-name>`

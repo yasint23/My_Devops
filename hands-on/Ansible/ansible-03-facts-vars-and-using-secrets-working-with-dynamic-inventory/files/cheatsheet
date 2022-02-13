@@ -1,0 +1,66 @@
+This is one vault application:
+
+>> Create inventory.txt file
+
+[webservers]
+node1 ansible_host=172.31.94.71 ansible_user=ec2-user
+
+[dbservers]
+node2 ansible_host=172.31.93.240 ansible_user=ec2-user
+
+[all:vars]
+ansible_ssh_private_key_file=/home/ec2-user/yasin.pem
+
+>> Create ansible.cfg
+
+[defaults]
+host_key_checking = False
+inventory = inventory.txt
+deprecation_warnings=False
+interpreter_python=auto_silent
+
+>> We will encrypt the inventory.txt file
+
+$ ansible-vault encrypt inventory.txt
+
+$ ansible-vault edit inventory.txt
+
+$ ansible-vault decrypt inventory.txt
+
+>> We can refer the password from file
+First Create pass.txt file
+
+$ echo "P123456" > pass.txt
+$ ansible-vault encrypt inventory.txt
+New Vault password: P123456
+
+$ ansible all -m ping -o (it will give error)
+$ ansible all -m ping -o --vault-password-file ./pass.txt 
+* But this is also not secure way because if anyone get pass.txt file will reach passwords.
+
+>> Another way, from aws parameter (You can put confidential information inside sh file and call by the parameter)
+AWS console >> parameter store >> create parameter
+$ aws --region=us-east-1 ssm get-parameters --names "vault_passwd" --query "Parameters[*].{Value:Value}" --output text
+This command needs credential to the ec2 for this we need Admin Role
+>> From AWS console right click on the ec2 >> Security >> Modify IAM role >> Admin then run command again.
+
+>> Create vault_passwd.sh file and copy the command to here as sh-bang
+#! /bin/bash
+aws --region=us-east-1 ssm get-parameters --names "vault_passwd" --query "Parameters[*].{Value:Value}" --output text
+
+$ chmod +x vault_passwd.sh
+
+$ ansible all -m ping -o --vault-password-file ./vault_passwd.sh
+It will work.
+$ bash ./vault_passwd.sh
+
+Not only use for vault, for example databes_password, instead of wrting it app file we can create sh file.
+vim my_info.sh
+database_password = aws --region=us-east-1 ssm get-parameters --names "database_passwd" --query "Parameters[*].{Value:Value}" --output text
+We can refer the password from sh file by the "database_passwd" created aws parameter store   
+
+
+
+
+
+
