@@ -1,13 +1,4 @@
-# Hands-on Ansible-01: To Install Ansible and Ansible Basic Operations
-
-The purpose of this hands-on training is to give students knowledge of basic Ansible skills.
-
-## Learning Outcomes
-
-At the end of this hands-on training, students will be able to;
-
-- Explain what Ansible can do
-- Learn basic Ad-hoc commands  
+# Hands-on Ansible-01: To Install Ansible and Ansible Basic Operations 
 
 ## Outline
 
@@ -47,13 +38,6 @@ ansible 2.9.12
   executable location = /usr/bin/ansible
   python version = 2.7.18 (default, Aug 27 2020, 21:22:52) [GCC 7.3.1 20180712 (Red Hat 7.3.1-9)]
 ```
-- Explain the lines above:
-    1. Version Number of Ansible
-    2. Path for the Ansible Config File
-    3. Modules are searched in this order
-    4. Ansible's Python Module path
-    5. Ansible's executable file path
-    6. Ansible's Python version with GNU Compiler Collection for Red Hat
 
 ### Configure Ansible on the Control Node
 
@@ -308,7 +292,9 @@ $ ansible -b -m package -a "name=nginx state=present" all
 
 - Connect to nodes and check if nginx was installed. (nginx -v)
 
-- Explain the difference of ```yum``` and ```package``` modules.
+- The difference of ```yum``` and ```package``` modules;
+>> Ansible package module autodetect your OS default package manager (e.g yum, apt) from existing facts.
+If you are using multiple OS in your environment, then instead of specifying package manager you should use package over yum or apt.'
 
 
 ### Using Your Own Inventory

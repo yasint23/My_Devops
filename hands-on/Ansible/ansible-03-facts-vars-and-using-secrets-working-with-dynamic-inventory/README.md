@@ -128,9 +128,9 @@ ec2-34-201-69-79.compute-1.amazonaws.com | SUCCESS => {
   hosts: all
   tasks:
     - name: print facts
-      debug:             #Ekrana birsey yazdirmak icin kullanilan bir module
-      msg: >      
+      debug:
         var: ansible_facts
+
 ```
 
 ```bash
