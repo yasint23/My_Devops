@@ -1,4 +1,4 @@
-## Part 1 - Install Ansible Linux machine
+# Part 1 - Install Ansible Linux machine
 
 ```bash
 sudo yum update -y

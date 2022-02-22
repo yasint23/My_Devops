@@ -3,15 +3,7 @@
 
 The purpose of this hands-on training is to give students the knowledge of provisioning a web and database server with a dynamic website.
 
-## Learning Outcomes
-
-At the end of this hands-on training, students will be able to;
-
-- Explain how to provision a web server using Ansible
-- Explain how to provision a database server using Ansible
-
 ![ho-04](ho-04.png)
-
 
 ## Outline
 
@@ -44,54 +36,11 @@ At the end of this hands-on training, students will be able to;
 ## Part 2 - Install Ansible on the Controller Node
 
 - Connect to your ```Controller Node```.
-
-- Optionally you can connect to your instances using VS Code.
-
-                    -------------------- OPTIONAL BELOW ----------------------
-
-- You can also use connect to the Controller Node via VS Code's ```Remote SSH``` Extension. 
-
-- Open up your VS Code editor. 
-
-- Click on the ```Extensions``` icon. 
-
-- Write down ```Remote - SSH``` on the search bar. 
-
-- Click on the first option on the list.
-
-- Click on the install button.
-
-- When the extension is installed, restart your editor.
-
-- Click on the green button (```Open a Remote Window``` button) at the most bottom left.
-
-- Hit enter. (```Connect Current Window to Host...```)
-
-- Enter a name for your connection on the input field and click on ```Add New SSH Host``` option.
-
-- Enter your ssh connection command (```ssh -i <YOUR-PEM-FILE> ec2-user@<YOUR SERVER IP>```) on the input field and hit enter.
-
-- Hit enter again.
-
-- Click on the ```connect``` button at the bottom right.
-
-- Click on ```continue``` option.
-
-- Click on the ```Open Folder``` button and then click on the ```Ok``` button.
-
-- Lastly, open up a new terminal on the current window.
-
-                    -------------------- OPTIONAL ABOVE ----------------------
-
 - Run the commands below to install Python3 and Ansible. 
 
 ```bash
 $ sudo yum install -y python3 
-```
-
-```bash
 $ pip3 install --user ansible
-```
 
 - Check Ansible's installation with the command below.
 
@@ -186,7 +135,7 @@ $ ansible all -m ping -o
       yum:
         name: 
             - mariadb-server
-            - python3-PyMySQL
+            - python3-PyMySQL 
         state: latest
 
     - name: start mariadb
@@ -214,7 +163,8 @@ ansible-playbook playbook.yml
 
 ```bash
 mysql --version
-```
+or
+$ ansible db_server -a "mysql --version"
 
 - Create a file named ```db-load-script.sql``` under /home/ec2-user folder, copy and paste the content below.
 
@@ -249,11 +199,11 @@ $ ansible-playbook playbook.yml
 
 ```yml
 - name: Create password for the root user
-      mysql_user:
-        login_password: ''
-        login_user: root
-        name: root
-        password: "clarus1234"
+  mysql_user:
+    login_password: ''
+    login_user: root
+    name: root
+    password: "y1234"
 ```
 
 - Create a file named ```.my.cnf``` under home directory on controller node.
@@ -263,7 +213,7 @@ $ ansible-playbook playbook.yml
 ```conf
 [client]
 user=root
-password=clarus1234
+password=y1234
 
 [mysqld]
 wait_timeout=30000
@@ -292,12 +242,12 @@ $ ansible-playbook playbook.yml
 - Append the content below into ```playbook.yml``` file in order to create a remote database user.
 
 ```yml
-    - name: Create db user with name 'remoteUser' and password 'clarus1234' with all database privileges
+    - name: Create db user with name 'remoteUser' and password 'y1234' with all database privileges
       mysql_user:
         name: remoteUser
-        password: "clarus1234"
+        password: "y1234"
         login_user: "root"
-        login_password: "clarus1234"
+        login_password: "y1234"
         priv: '*.*:ALL,GRANT'
         state: present
         host: "{{ hostvars['web_server'].ansible_host }}"
@@ -316,7 +266,7 @@ $ ansible-playbook playbook.yml
       mysql_db:
         name: ecomdb
         login_user: root
-        login_password: "clarus1234"
+        login_password: "y1234"
         state: present
 ```
 
@@ -444,7 +394,7 @@ $ echo "USE ecomdb; show tables like 'products'; " | mysql
       lineinfile:
         path: /var/www/html/index.php
         regexp: '172\.20\.1\.101'
-        line: "$link = mysqli_connect('{{ hostvars['db_server'].ansible_host }}', 'remoteUser', 'clarus1234', 'ecomdb');"
+        line: "$link = mysqli_connect('{{ hostvars['db_server'].ansible_host }}', 'remoteUser', 'y1234', 'ecomdb');"
       when: not result.stdout == "already cloned..."
 ```
 

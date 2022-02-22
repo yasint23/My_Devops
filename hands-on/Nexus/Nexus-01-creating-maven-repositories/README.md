@@ -1,7 +1,5 @@
 # Hands-on 01: Create Nexus Proxy and Hosted Repositories for a Maven Project
 
-Purpose of this hands-on training is to learn how to create and use Nexus repositories to store a Maven project.
-
 ## Outline
 
 - Part 1 - Start Nexus Repository and Create Credentials
@@ -80,7 +78,7 @@ ls
 
 ```
 ll
-sudo chown -R ec2-user:ec2-user /opt/nexus
+sudo chown -R ec2-user:ec2-user opt/nexus
 sudo chown -R ec2-user:ec2-user /opt/sonatype-work
 ll
 ```
@@ -214,7 +212,7 @@ nano pom.xml
 
 ```
 mvn
-curl http://169.254.169.254/latest/meta-data/public-ipv4
+curl http://169.254.169.254/latest/meta-data/public-ipv4  
 nano /home/ec2-user/.m2/settings.xml
 ```
 52.90.127.112
@@ -345,7 +343,7 @@ nano /home/ec2-user/.m2/settings.xml
 </settings>
 ```
 
-- Add distributionManagement element given below to your pom.xml file after `</dependencies>` line. Include the endpoints to your maven-releases and maven-snapshots repos. Change localhost >>>> Public ip of your server.
+- Add distribution Management element given below to your pom.xml file after `</dependencies>` line. Include the endpoints to your maven-releases and maven-snapshots repos. Change localhost >>>> Public ip of your server.
 
 ```
 curl http://169.254.169.254/latest/meta-data/public-ipv4
