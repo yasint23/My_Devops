@@ -23,7 +23,6 @@
 - Connect to your instance with SSH:
 
 - Update the OS:
-
 ```
 sudo yum update -y
 ```
@@ -78,7 +77,7 @@ ls
 
 ```
 ll
-sudo chown -R ec2-user:ec2-user opt/nexus
+sudo chown -R ec2-user:ec2-user /opt/nexus
 sudo chown -R ec2-user:ec2-user /opt/sonatype-work
 ll
 ```
@@ -147,7 +146,7 @@ sudo systemctl status nexus.service
 - To Retrieve the temporary password from `admin.password` file.
 
 ```
-more /opt/sonatype-work/nexus3/admin.password
+cat /opt/sonatype-work/nexus3/admin.password
 ```
 
 - Open Nexus service from the browser and click `Sing in` upper right of the page. A box will pop up.
@@ -270,7 +269,7 @@ nano /home/ec2-user/.m2/settings.xml
 - Run the build with the command `mvn package`. Your build is ready when you see a BUILD SUCCESS message.
 
 ```
-pwd && ls
+cd nexus-hands-on
 mvn package
 ls
 cd target && ls

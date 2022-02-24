@@ -1,12 +1,4 @@
-# Hands-on Ansible-05 : Using Roles
-The purpose of this hands-on training is to give students knowledge of basic Ansible skills.
-
-## Learning Outcomes
-
-At the end of this hands-on training, students will be able to;
-
-- Explain what is Ansible role
-- Learn how to create, find and use a role.  
+# Hands-on Ansible-05 : Using Roles 
 
 ## Outline
 
@@ -16,10 +8,7 @@ At the end of this hands-on training, students will be able to;
 
 - Part 3 - Using Ansible Roles from Ansible Galaxy
 
-
-
 ## Part 1 - Install Ansible
-
 
 - Spin-up 3 Amazon Linux 2 instances and name them as:
     1. control node -->(SSH PORT 22)(Linux)
@@ -44,15 +33,11 @@ $ pip3 install --user ansible
 ```bash
 $ ansible --version
 ```
-
-
 - Run the command below to transfer your pem key to your Ansible Controller Node.
 
 ```bash
 scp -i ~/.ssh/walter-pem.pem ~/.ssh/walter-pem.pem ec2-user@54.197.164.241:/home/ec2-user
 ```
-
-
 - Make a directory named ```working-with-roles``` under the home directory and cd into it.
 
 ```bash 
@@ -84,6 +69,7 @@ host_key_checking = False
 inventory=inventory.txt
 interpreter_python=auto_silent
 roles_path = /home/ec2-user/ansible/roles/
+depreciation_warnings=False
 ```
 
 
@@ -252,48 +238,11 @@ setup-Archlinux.yml  setup-FreeBSD.yml  setup-RedHat.yml   vhosts.yml
 $ vi main.yml
 
 ```yml
----
 # Variable setup.
 - name: Include OS-specific variables.
   include_vars: "{{ ansible_os_family }}.yml"
-
-- name: Define nginx_user.
-  set_fact:
-    nginx_user: "{{ __nginx_user }}"
-  when: nginx_user is not defined
-
-# Setup/install tasks.
-- include_tasks: setup-RedHat.yml
-  when: ansible_os_family == 'RedHat'
-
-- include_tasks: setup-Ubuntu.yml
-  when: ansible_distribution == 'Ubuntu'
-
-- include_tasks: setup-Debian.yml
-  when: ansible_os_family == 'Debian'
-
-- include_tasks: setup-FreeBSD.yml
-  when: ansible_os_family == 'FreeBSD'
-
-- include_tasks: setup-OpenBSD.yml
-  when: ansible_os_family == 'OpenBSD'
-
-- include_tasks: setup-Archlinux.yml
-  when: ansible_os_family == 'Archlinux'
-
-# Vhost configuration.
-- import_tasks: vhosts.yml
-
-# Nginx setup.
-- name: Copy nginx configuration in place.
-  template:
-    src: "{{ nginx_conf_template }}"
-    dest: "{{ nginx_conf_file_path }}"
-    owner: root
-    group: "{{ root_group }}"
-    mode: 0644
-  notify:
-    - reload nginx
+........
+.......
 ```
 
 - # use it in playbook:
@@ -328,13 +277,12 @@ Stdout:
 
 # Optional
 
-* As a Nioyatech we need to create an instance image. At this image we want to use some software such as docker and promeheus. So every instance will be created with this instance image. We are also planning to update this image every 6 months. So we can update docker and prometheus software versions ater 6 months. We need to re-usable configs to do that. Lets talk about this situation.
+* If we need to create an instance image. At this image we want to use some software such as docker and prometheus. So every instance will be created with this instance image. We are also planning to update this image every 6 months. So we can update docker and prometheus software versions ater 6 months. We need to re-usable configs to do that. Lets talk about this situation.
 
 * First create a new instance with Ubuntu 20.04 instance image. AMI Number: ami-04505e74c0741db8d
 
 * We will create declarative file to download ansible roles, lets start!
-
-* Create a file which name is role_requirements.yml:
+- Create a file which name is role_requirements.yml: 
 
 ```
 - src: git+https://github.com/geerlingguy/ansible-role-docker
@@ -351,8 +299,10 @@ Stdout:
 
 * We will use prometheus at next session to monitor our intances, and NTP is Network Time Protocol. [For more information](https://en.wikipedia.org/wiki/Network_Time_Protocol)
 
-Then run this command:
+Install git;
+$ sudo yum install git -y
 
+Then run this command:
 ```
 ansible-galaxy install -r role_requirements.yml
 ```
@@ -362,7 +312,7 @@ ansible-galaxy install -r role_requirements.yml
 * Additionally create a role named with common:
 
 ```
-ansible-galaxy init /home/ec2-user/working-with-roles/common
+ansible-galaxy init /home/ec2-user/ansible/roles/common
 ```
 
 * Then create a playbook file to create instance image.
@@ -384,10 +334,55 @@ ansible-galaxy init /home/ec2-user/working-with-roles/common
 
 * To apply this first you need to configure your Inventory file, so add your instance private ip address to instance_image.
 
+$ ansible-playbook common.yml
+
 * When you get ntp error, go and customize common role.
+
+- tasks file for /home/ec2-user/ansible/roles/common/main.yml
+(Content get from google search "how to install ntp for ubuntu)
+
+```main.yml
+---
+# tasks file for /home/ec2-user/working-with-roles/roles/common
+- name: Common Tasks
+  debug:
+    msg: Common Task Triggered
+
+- name: Fix dpkg
+  command: dpkg --configure -a
+
+- name: Update apt
+  apt:
+    upgrade: dist
+    update_cache: yes
+
+- name: Install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ntp
+```
+$ ansible-playbook common.yml
+```
+- Connect to the instance-image from another terminal and see the docker, date, prometheus
+
+```
+$ sudo su
+~# docker -v  and  ~# docker-compose -v and ~# date
+~# cd /opt/prometheus
+```
+Now instance image(docker, prometheus installed) is ready and we can use this image.
+
+- Go to AWS console and create instance from this image.
+> Stop the instance-image
+> Actions > Image and templpates > Create image > Give name to image
+> Check the image created in; Images > AMIs
+We can launch instance from this image and this instance has docker, docker compose, prometheus.
 
 * Also add a slack notification that shows ansible deployment is finished. 
 ```
+Add tasks: to the common.yml
 ---
 -
   hosts: instance_image
@@ -401,11 +396,10 @@ ansible-galaxy init /home/ec2-user/working-with-roles/common
     - ansible-prometheus-node-exporter
 
   tasks:
-   - import_tasks: 'common/slack.yml'     
+   - import_tasks: 'common/slack.yml' 
+
 ```
-
-common/slack.yml is like:
-
+$ vim slack.yml
 ```
 ---
 - name: Send slack notification
@@ -424,5 +418,8 @@ common/slack.yml is like:
     slack_channel: "#class-chat-tr"
     slack_username: "Ansible"
 ```
-
+Go to slack;
+Channel Workspace > Administration > manage apps
+Browser will open, Click "Custom integration" > Incoming Webhook > Add to slack > Choose channel > Copy the Webhook url after service/....
+- Paste to the token in slack.yml 
 * Then run the playbook command again.
