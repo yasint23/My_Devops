@@ -1,0 +1,2 @@
+* To get version of K8s objects;
+kubectl explain ClusterRole/ConfigMap | grep VERSION

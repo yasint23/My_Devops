@@ -1,17 +1,5 @@
 # Hands-on Kubernetes-08: Helm Basics
 
-The purpose of this hands-on training is to give students the knowledge of basic operations of Helm.
-
-## Learning Outcomes
-
-At the end of this hands-on training, students will be able to;
-
-- Learn basic operations of Helm
-
-- Learn how to create Helm Chart
-
-- Learn how to use AWS S3 as helm repo
-
 ## Outline
 
 - Part 1 - Setting up the Kubernetes Cluster
@@ -123,7 +111,7 @@ helm install my-release \
 helm list
 ```
 
-- Uninstall a release.
+- Uninstall a release
 
 ```bash
 helm uninstall my-release
@@ -710,21 +698,21 @@ helm repo remove mylocalrepo
 
 ## Part 5 - Set up a Helm v3 chart repository in Github
 
-- Create a GitHub repo and name it `mygithubrepo`.
+- Create a GitHub repo and name it `helm_repo`.
 
 - Produce GitHub Apps Personal access tokens. Go to <your avatar> --> Settings --> Developer settings and click Personal access tokens. Make sure to copy your personal access token now. You won’t be able to see it again!
 
 - Create a GitHub repository locally and push it.
 
 ```bash
-mkdir mygithubrepo
-cd mygithubrepo
-echo "# mygithubrepo" >> README.md
+mkdir helm_repo
+cd helm_repo
+echo "# helm_repo" >> README.md
 git init
 git add README.md
 git commit -m "first commit"
 git branch -M main
-git remote add origin https://github.com/yasint23/mygithubrepo.git
+git remote add origin https://github.com/yasint23/helm_repo.git
 git push -u origin main
 ```
 
@@ -735,10 +723,10 @@ cd ..
 helm create demogitrepo
 ```
 
-- Package the repo under the `mygithubrepo` folder.
+- Package the repo under the `helm_repo` folder.
 
 ```bash
-cd mygithubrepo
+cd helm_repo
 helm package ../demogitrepo
 ```
 
@@ -761,21 +749,21 @@ git push
 - Add this repo to your repos. Go to <your repo> --> README.md and click Raw. Copy to address without README.md like below. This will be repo url.
 
 ```
-https://raw.githubusercontent.com/<github-user-name>/mygithubrepo/main
+https://raw.githubusercontent.com/<github-user-name>/helm_repo/main
 ```
 
-- List the repos and add mygithubrepo.
+- List the repos and add helm_repo.
 
 ```bash
 helm repo list
-helm repo add --username <github-user-name> --password <personel-access-token> my-github-repo 'https://raw.githubusercontent.com/<github-user-name>/mygithubrepo/main'
+helm repo add --username yasint23 --password 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 helm-repo 'https://raw.githubusercontent.com/yasint23/helm_repo/main'
 helm repo list
 ```
 
 - Let's search the repo.
 
 ```bash
-helm search repo my-github-repo
+helm search repo helm-repo
 ```
 
 - Add new charts the repo.
@@ -783,7 +771,7 @@ helm search repo my-github-repo
 ```bash
 cd ..
 helm create second-chart
-cd mygithubrepo
+cd helm_repo
 helm package ../second-chart
 helm repo index .
 git add .
@@ -795,13 +783,13 @@ git push
 
 ```bash
 helm repo update
-helm search repo my-github-repo
+helm search repo helm-repo
 ```
 
-- Create a release from my-github-repo
+- Create a release from helm-repo
 
 ```bash
-helm install github-repo-release my-github-repo/second-chart
+helm install github-repo-release helm-repo/yasin-chart
 ```
 
 - Check the objects.
