@@ -1,3 +1,5 @@
+//User needs to select appropriate key name and should put his/her own pem file in the relevant places when launching the template.
+
 terraform {
   required_providers {
     aws = {
@@ -19,7 +21,7 @@ variable "tags" {
 
 resource "aws_instance" "control_node" {
   ami = "ami-0b0af3577fe5e3532"
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
   key_name = "oliver"
   iam_instance_profile = aws_iam_instance_profile.ec2full.name
   vpc_security_group_ids = [aws_security_group.tf-sec-gr.id]
