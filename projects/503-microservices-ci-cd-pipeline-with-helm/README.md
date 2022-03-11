@@ -956,7 +956,7 @@ mkdir jenkins
 
 ``` bash
 echo 'Running Unit Tests on Petclinic Application'
-docker run --rm -v $HOME/.m2:/root/.m2 -v `pwd`:/app -w /app maven:3.6-openjdk-11 mvn clean test
+docker run --rm -v $HOME/.m2:/root/.m2 -v `pwd`:/app -w /app maven:3.8-openjdk-11 mvn clean test
 ```
 * Create a webhook for Jenkins CI Job; 
 
@@ -995,7 +995,7 @@ git checkout feature/msp-13
 ``` bash
 mkdir jenkins
 ```
-* Create a Jenkins job with the name of `petclinic-ci-job`: 
+* Create a Jenkins job with the name of `petclinic-ci-job`:  (developer lar jenkins uzerinde unit testlerini yapiyorlar bu adimda)
   * Select `Freestyle project` and click `OK`
   * Select github project and write the url to your repository's page into `Project url` (https://github.com/[your-github-account]/petclinic-microservices)
   * Under the `Source Code Management` select `Git` 
@@ -1007,10 +1007,20 @@ mkdir jenkins
   * Write below script into the `Command`
     ```bash
     echo 'Running Unit Tests on Petclinic Application'
-    docker run --rm -v $HOME/.m2:/root/.m2 -v `pwd`:/app -w /app maven:3.6-openjdk-11 mvn clean test
-    ```
+    docker run --rm -v $HOME/.m2:/root/.m2 -v `pwd`:/app -w /app maven:3.8-openjdk-11 mvn clean test
+  ```
   * Click `Add post-build action` under `Post-build Actions` and select `Record jacoco coverage report`
   * Click `Save`
+  
+  ######
+  * Bu komutun aciklamasi: 
+  - Maven calisinca home directorysinde /.m2 local repo olsuturur ve butun dependencyleri buraya koyar, daha sonra tekrar mvn calistirinca ayni dependencyleri buradan alir tekrar yuklemez. 
+  - Jenkins uzerinde mvn calistirmak icin dockerhub dan maven-image(maven:3.6-openjdk-11) kullaniyoruz. Ancak pomfile gormesi gerekiyor docker run komutunda, bu yuzden volume(-v) bagliyoruz, bu volumde hercalsitiginda olusan gereksiz dosyalari tutmasin diye --rm yaziyoruz.
+  - `pwd`:/app -w /app (Bulundugum klasordeki dosyalari /app icerisine koyduk ancak calismasi icin -w /app 'workspace deki /app pathini tanimliyoruz)
+  - $HOME/.m2:/root/.m2 -v (Herdefasinda konteynir icerisinde .m2 klasoru olusturmasin diye bizim home directorymizdeki .m2 klasorunu konteynir icerisinde /root/.m2 volume ile root altindaki .m2 klasorune bagliyoruz. "root" konteynir da user ve onun home direct ise .m2 folder oluyor)
+  - Sonuc olarak bu komut sayesinde jenkins server'a maven yuklemeden konteynir $HOME/.m2 dan gerekli dosya dependencyleri alarak calisacak ve her seferinde unit testleri yapmasi.
+  -"$HOME/.m2" jenkins serverde "var/lib/jenkins/worksopace/petclinic-ci-job" oluyor.
+  ######
   
 * Jenkins `CI Job` should be triggered to run on each commit of `feature**` and `bugfix**` branches and on each `PR` merge to `dev` branch.
 
@@ -1018,7 +1028,7 @@ mkdir jenkins
 
 ``` bash
 echo 'Running Unit Tests on Petclinic Application'
-docker run --rm -v $HOME/.m2:/root/.m2 -v `pwd`:/app -w /app maven:3.6-openjdk-11 mvn clean test
+docker run --rm -v $HOME/.m2:/root/.m2 -v `pwd`:/app -w /app maven:3.8-openjdk-11 mvn clean test
 ```
 * Create a webhook for Jenkins CI Job; 
 
@@ -1042,14 +1052,25 @@ git checkout dev
 git merge feature/msp-13
 git push origin dev
 ```
+#####
+"petclinic-nightly" (Geceleri yapilacak functional testler icin) section a geldik. Onceki "petclinic-ci-job" da unit testleri yaptik.
+ Burada gercek hayatta kubernetes ile yapilir ancak biz egitim amacli docker swarm ve ansible kullanacagiz.
+Bunun icin; 
+- CFN ile ile 5 adet ec2-instance ayaga kaldiracagiz tabi burda keypair otomotize etmemiz gerekiyor, 
+- imageleri AWS-ECR dan docker registry den alacagiz
+- Ansible ile instance lari yonetecegiz. Bundan soraki asamalar bunun icin.
+#####
 
 ## MSP 14 - Create Docker Registry for Dev Manually
 
-* Create a Jenkins Job and name it as `create-ecr-docker-registry-for-dev` to create Docker Registry for `dev` on AWS ECR manually.
+* Create a Jenkins Freestyle Job and name it as `create-ecr-docker-registry-for-dev` to create Docker Registry for `dev` on AWS ECR manually.
+- Copy the command to the "Execute shell"
+- petclininc folder da "aws" '/usr/path/bin' altinda o nedenle calismasi icin path vermemiz gerekiyor.
+- Jenkins serverde role verdigimiz icin aws config yapmamiz gerekmiyor.
 
 ``` bash
 PATH="$PATH:/usr/local/bin"
-APP_REPO_NAME="clarusway-repo/petclinic-app-dev"
+APP_REPO_NAME="yasin-test-repo/petclinic-app-dev"
 AWS_REGION="us-east-1"
 
 aws ecr create-repository \
@@ -1073,7 +1094,7 @@ git checkout feature/msp-15
 
 ``` bash
 PATH="$PATH:/usr/local/bin"
-APP_REPO_NAME="clarusway-repo/petclinic-app-dev"
+APP_REPO_NAME="yasin-test-repo/petclinic-app-dev"
 AWS_REGION="us-east-1"
 
 aws ecr create-repository \
@@ -1105,6 +1126,7 @@ git checkout feature/msp-16
 ```
 
 - Prepare a Cloudformation template for Docker Swarm Infrastructure consisting of 3 Managers, 2 Worker Instances and save it as `dev-docker-swarm-infrastructure-cfn-template.yml` under `infrastructure` folder.
+## Bu cfn dosyasinda docker image olan 5 ec2 var ve bunlara ansible tarafindan yonetmek icin "tag" ler verildi. Managerlar dan biri grand-master, ileride ansible da tagler bu isim ile verilcek.
 
 - Grant permissions to Docker Machines within Cloudformation template to create ECR Registry, push or pull Docker images to/from ECR Repo.
 
@@ -1141,7 +1163,7 @@ aws --version
 
 ```bash
 PATH="$PATH:/usr/local/bin"
-CFN_KEYPAIR="call-ansible-test-dev.key"
+CFN_KEYPAIR="yasin-ansible-test-dev.key"
 AWS_REGION="us-east-1"
 aws ec2 create-key-pair --region ${AWS_REGION} --key-name ${CFN_KEYPAIR} --query "KeyMaterial" --output text > ${CFN_KEYPAIR}
 chmod 400 ${CFN_KEYPAIR}
@@ -1152,8 +1174,8 @@ chmod 400 ${CFN_KEYPAIR}
 ```bash
 PATH="$PATH:/usr/local/bin"
 APP_NAME="Petclinic"
-APP_STACK_NAME="Call-$APP_NAME-App-${BUILD_NUMBER}"
-CFN_KEYPAIR="call-ansible-test-dev.key"
+APP_STACK_NAME="yasin-test-$APP_NAME-App-${BUILD_NUMBER}"
+CFN_KEYPAIR="yasin-test-ansible-test-dev.key"
 CFN_TEMPLATE="./infrastructure/dev-docker-swarm-infrastructure-cfn-template.yml"
 AWS_REGION="us-east-1"
 aws cloudformation create-stack --region ${AWS_REGION} --stack-name ${APP_STACK_NAME} --capabilities CAPABILITY_IAM --template-body file://${CFN_TEMPLATE} --parameters ParameterKey=KeyPairName,ParameterValue=${CFN_KEYPAIR}
@@ -1162,8 +1184,8 @@ aws cloudformation create-stack --region ${AWS_REGION} --stack-name ${APP_STACK_
 - After running the job above, replace the script with the one below in order to test SSH connection with one of the docker instance.
 
 ```bash
-CFN_KEYPAIR="call-ansible-test-dev.key"
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${WORKSPACE}/${CFN_KEYPAIR} ec2-user@172.31.91.243 hostname
+CFN_KEYPAIR="yasin-test-ansible-test-dev.key"
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${WORKSPACE}/${CFN_KEYPAIR} ec2-user@172.31.81.222  hostname
 ```
 
 - Prepare static inventory file with name of `hosts.ini` for Ansible under `ansible/inventory` folder using Docker machines private IP addresses.
@@ -1185,10 +1207,11 @@ git push
 ```
 
 - Configure `test-creating-qa-automation-infrastructure` job and replace the existing script with the one below in order to test ansible by pinging static hosts.
+## Test yapiyoruz ansible 5 instance ile connection kurabiliyor mu, "ping" komutu karsiligi "pong" donmesi gerek her biri icin.
 
 ```bash
 PATH="$PATH:/usr/local/bin"
-CFN_KEYPAIR="call-ansible-test-dev.key"
+CFN_KEYPAIR="yasin-test-ansible-test-dev.key"
 export ANSIBLE_INVENTORY="${WORKSPACE}/ansible/inventory/hosts.ini"
 export ANSIBLE_PRIVATE_KEY_FILE="${WORKSPACE}/${CFN_KEYPAIR}"
 export ANSIBLE_HOST_KEY_CHECKING=False
@@ -1196,6 +1219,10 @@ ansible all -m ping
 ```
 
 - Prepare dynamic inventory file with name of `dev_stack_dynamic_inventory_aws_ec2.yaml` for Ansible under `ansible/inventory` folder using Docker machines private IP addresses.
+
+## Dort tane yaml file hazirliyoruz, aslinda 1. yml file yeterli diger 3'u neyi nasil yaptigimizi gostermek icin. 
+# Ansible sayfasindan aws plugin yazinca content cikiyor, alip burada update ediyoruz. Resimde yaml dosyasindaki tagler sutun olarak gorunuyor. 
+![Ansible Tags Diagram](./ansible_tags.png)
 
 ```yaml
 plugin: aws_ec2
@@ -1282,11 +1309,11 @@ git push
 
 ```bash
 APP_NAME="Petclinic"
-CFN_KEYPAIR="call-ansible-test-dev.key"
+CFN_KEYPAIR="yasin-test-ansible-test-dev.key"
 PATH="$PATH:/usr/local/bin"
 export ANSIBLE_PRIVATE_KEY_FILE="${WORKSPACE}/${CFN_KEYPAIR}"
 export ANSIBLE_HOST_KEY_CHECKING=False
-export APP_STACK_NAME="Call-$APP_NAME-App-${BUILD_NUMBER}"
+export APP_STACK_NAME="Call-$APP_NAME-App-${BUILD_NUMBER}" # Degistir "yasin-test-Petclinic-App-6" -cloudformation dan alabiliriz.  
 # Dev Stack
 sed -i "s/APP_STACK_NAME/$APP_STACK_NAME/" ./ansible/inventory/dev_stack_dynamic_inventory_aws_ec2.yaml
 cat ./ansible/inventory/dev_stack_dynamic_inventory_aws_ec2.yaml
@@ -1306,6 +1333,7 @@ ansible-inventory -v -i ./ansible/inventory/dev_stack_swarm_workers_aws_ec2.yaml
 ```
 
 - After running the job above, replace the script with the one below in order to test all instances within dev dynamic inventory by pinging static hosts.
+## Herhangi bir degisiklik yapmiyoruz. Bu defa dynamic inventory ile ping atiyoruz.
 
 ```bash
 # Test dev dynamic inventory by pinging
@@ -1320,6 +1348,7 @@ ansible -i ./ansible/inventory/dev_stack_dynamic_inventory_aws_ec2.yaml all -m p
 ```
 
 - Create an ansible playbook to install and configure tools (`Docker`, `Docker-Compose`, `AWS CLI V2`) needed for all Docker Swarm nodes (instances) and save it as `pb_setup_for_all_docker_swarm_instances.yaml` under `ansible/playbooks` folder.
+
 
 ```yaml
 - hosts: all
@@ -1443,7 +1472,7 @@ git push
 
 ```bash
 APP_NAME="Petclinic"
-CFN_KEYPAIR="call-ansible-test-dev.key"
+CFN_KEYPAIR="yasin-test-ansible-test-dev.key"
 PATH="$PATH:/usr/local/bin"
 export ANSIBLE_PRIVATE_KEY_FILE="${WORKSPACE}/${CFN_KEYPAIR}"
 export ANSIBLE_HOST_KEY_CHECKING=False
@@ -1531,6 +1560,8 @@ git push origin dev
 
 ## MSP 17 - Prepare a QA Automation Pipeline for Nightly Builds
 
+![Functional Test Diagram](./functional_test.png)
+
 - Create `feature/msp-17` branch from `dev`.
 
 ```bash
@@ -1542,8 +1573,9 @@ git checkout feature/msp-17
 - Prepare a script to package the app with maven Docker container and save it as `package-with-maven-container.sh` and save it under `jenkins` folder.
 
 ```bash
-docker run --rm -v $HOME/.m2:/root/.m2 -v $WORKSPACE:/app -w /app maven:3.6-openjdk-11 mvn clean package
+docker run --rm -v $HOME/.m2:/root/.m2 -v $WORKSPACE:/app -w /app maven:3.8-openjdk-11 mvn clean package
 ```
+* Bu kodun  aciklamasi; Attaching local .m2 repository to the image repository and app will run on the workspace (repo of jenkins) server. 
 
 - Prepare a script to create ECR tags for the dev docker images and save it as `prepare-tags-ecr-for-dev-docker-images.sh` and save it under `jenkins` folder.
 
@@ -1895,7 +1927,7 @@ ansible-playbook -vvv --connection=local --inventory 127.0.0.1, --extra-vars "wo
 
 ```groovy
 pipeline {
-    agent { label "master" }
+    agent any
     environment {
         PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
         APP_NAME="petclinic"

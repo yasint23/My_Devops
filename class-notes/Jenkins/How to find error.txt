@@ -1,0 +1,13 @@
+Bir Hata Nasıl Bildirilir
+Daha kolay hata raporlama için, Jenkins > Manage Jenkins > Script Console'da çalıştırabileceğiniz bu Groovy betiği ile eklentilerin tam listesini alabilirsiniz :
+println("Jenkins: ${Jenkins.instance.getVersion()}")
+println("OS: ${System.getProperty('os.name')} - ${System.getProperty('os.version')}")
+println "---"
+
+Jenkins.instance.pluginManager.plugins
+    .collect()
+    .sort { it.getShortName() }
+    .each {
+        plugin -> println("${plugin.getShortName()}:${plugin.getVersion()}")
+    }
+return

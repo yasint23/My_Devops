@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: liveness
+  name: startup-http
+spec:
+  containers:
+  - name: liveness
+    image: clarusway/probes
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 80
+      initialDelaySeconds: 3
+      periodSeconds: 3
+    startupProbe:
+      httpGet:
+        path: /healthz
+        port: 80
+      failureThreshold: 1
+      periodSeconds: 3

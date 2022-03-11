@@ -1,0 +1,4 @@
+* Terminalden jenkins server icerisine girmek/baglanmak icin sum komutlari girilir;
+
+sudo usermod -s /bin/bash jenkins
+sudo su - jenkins
