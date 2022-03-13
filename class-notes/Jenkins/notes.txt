@@ -2,3 +2,5 @@
 
 sudo usermod -s /bin/bash jenkins
 sudo su - jenkins
+
+* jenkinsIP:8080/env-vars.html/ browserda bu adresten jenkins in env variableri gorebiliriz
