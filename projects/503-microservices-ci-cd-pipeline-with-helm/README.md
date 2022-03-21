@@ -630,7 +630,7 @@ public class PetTest {
 ``` bash
 ../mvnw clean test
 ```
-* iki nokta yazmamizin sebebi mvnw dosyasi bir ust klasordeki mwnw dosyasini calistir diyoruz. Customer service icinde run ediyoruz aksi halde butun test file lari test edecekti, biz sadece customer altindaki 4 unit testi calistiriyoruz. Ancak mvnw ust klasorde. 
+## iki nokta yazmamizin sebebi mvnw dosyasi bir ust klasordeki mwnw dosyasini calistir diyoruz. Customer service icinde run ediyoruz aksi halde butun test file lari test edecekti, biz sadece customer altindaki 4 unit testi calistiriyoruz. Ancak mvnw ust klasorde. 
 
 * Commit the change, then push the changes to the remote repo.
 
@@ -2934,6 +2934,10 @@ kubectl version --short --client
 ```  
   
 * Log into `Rancher-Cluster-Instance` from Jenkins Server (Bastion host) and install Docker using the following script.
+# Jenkins server terminaline Rancher instance'in connection bilgisini girecegiz.
+
+cd .ssh
+ssh -i "rancher.pem" ubuntu@ec2-3-239-227-112.compute-1.amazonaws.com
 
 ```bash
 # Set hostname of instance
@@ -2988,7 +2992,7 @@ Interval            : 10 seoconds
 Success             : 200
 ```
 
-* Create Application Load Balancer with name of `rancher-alb` using `rke-alb-sg` security group with following settings and add `call-rancher-http-80-tg` target group to it.
+* Create Application Load Balancer with name of `rancher-alb` using `rke-alb-sg` security group with following settings and add `rancher-http-80-tg` target group to it.
 
 ```text
 Scheme              : internet-facing
@@ -3002,10 +3006,11 @@ Target group        : `rancher-http-80-tg` target group
 ```
 
 * Configure ALB --> Listener (edit) of HTTP on `Port 80` to redirect traffic to HTTPS on `Port 443`. (Sadece secure porttan talepler kabul edilsin) 
+# Target grubu, load balancer'a register yapmak onemli, kontrol et!!!
 
-* Create DNS A record for `rancher.clarusway.us` and attach the `call-rancher-alb` application load balancer to it.
-- Route53 --> hosted zone --> devopsyasin.com --> create record--> simple routing--> Define simple record--> 
---> 'rancher'devopsyasin.com--> record type:A --> value:Alias the application loadbalacer--> region-->dual.simplerecord-->create-->create record
+# Create DNS A record for `rancher.devopsyasin.com` and attach the `yasin-rancher-alb` application load balancer to it.
+# Route53 --> hosted zone --> devopsyasin.com --> create record--> simple routing--> Define simple record--> 
+# --> 'rancher'devopsyasin.com--> record type:A --> value:Alias the application loadbalacer--> region-->dual.simplerecord-->create-->create record
 
 * Install RKE, the Rancher Kubernetes Engine, [Kubernetes distribution and command-line tool](https://rancher.com/docs/rke/latest/en/installation/)) on Jenkins Server.
 - Come to jenkins server on terminal (by typing exit from rancher instance)
@@ -3015,8 +3020,8 @@ sudo mv rke_linux-amd64 /usr/local/bin/rke
 chmod +x /usr/local/bin/rke
 rke --version
 ```
-- Suana kadar EC2 rancher'a IAM role, key create, tags verdik, load balancer olusturduk. Son olarak jenkins server'a rke install ettik.
-- Rancer clusterlari yonetiyor ancak kendisi de bir cluster icerisinde calisiyor. Bunun icin ec2 rancher icinde cluster kuracagiz bunuda jenkins server daki 'rke' ile 'helm' yadimi ile yapacagiz.
+# Suana kadar rancher-ec2'ya IAM role, key create, tags verdik, load balancer olusturduk. Son olarak jenkins server'a rke install ettik.
+# Rancer clusterlari yonetiyor ancak kendisi de bir cluster icerisinde calisiyor. Bunun icin rancher-ec2 icinde cluster kuracagiz bunuda jenkins server daki 'rke' ile 'helm' yardimi ile yapacagiz.
 
 "https://www.rancher.com/docs/rke/latest/en/config-options/" for more informtaion and to see yaml file below.
 
@@ -3024,7 +3029,7 @@ rke --version
 
 ```yaml
 nodes:
-  - address: 3.216.9.204            #public ip of rancher server
+  - address: 172.31.82.64            #private ip of rancher server
     internal_address: 172.31.82.64   #private ip of rancher server
     user: ubuntu
     role:
@@ -3054,10 +3059,9 @@ ingress:
 - Bu kisma gerek yok biz cunku Jenkinse her yone actik. 
 
 ```bash
-cd test-petclinic-microservices-with-db/infrasturcture
+cd petclinic-microservices-with-db/infrastructure
 rke up --config ./rancher-cluster.yml
 ```
-
 
 * Check if the RKE Kubernetes Cluster created successfully.
 
@@ -3089,7 +3093,8 @@ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bas
 helm version
 ```
 
-* Add helm chart repositories of Rancher. (Rancheri clustera kurarken helm den aliyoruz chartlari,servis deploy vs onlarca yml yerine direk helm repodan aliyoruz)
+* Add helm chart repositories of Rancher. 
+# Rancheri clustera kurarken helm den aliyoruz chartlari, servis deploy vs onlarca yml yerine direk helm repodan aliyoruz
 
 ```bash
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
@@ -3118,7 +3123,8 @@ helm install rancher rancher-latest/rancher \     # komutlari tek tek gir
 kubectl -n cattle-system get deploy rancher
 kubectl -n cattle-system get pods
 ```
-* Rancher calisdigini browser dan gormek icin; "rancher.devopsyasin.com"
+# Rancher calisdigini browser dan gormek icin; "rancher.devopsyasin.com" Eger 'temproraly not available" uyarisi alirsan;
+# Target group içerisinde bulunun rancher instance'ın healthy olduğundan emin olun, load balancer'ı ve listener'ları kontrol edin.
 
 ## MSP 24 - Prepare Petlinic Kubernetes YAML Files
 
@@ -3129,10 +3135,17 @@ git checkout release
 git branch feature/msp-24
 git checkout feature/msp-24
 ```
+# 'Docker kompose' hazir olan docker compose yaml file larini kubernetes yaml file'na ceviren bir tool.
+# Biz burada elimizde olan docker yaml files'lari paketleyip bir helm chart'a cevirecegiz bu chartlari S3 bucket da saklayacagiz sonrada bunu k8s yaml file'ina donusturerek uygulamyi deploy edecegiz.
+# Biz en basta test asamalarin da docker swarm yerine k8s kullanmis olsaydik buna gerek kalmayacakti. Bu cevirme islemini yapmasak tek tek k8s yaml file lar hazirlayacaktik, daha kolay olsun diye ceviriyor.
+# Kompose gibi Kustomize da var, K8s files lari customize etmek icin kullaniliyor.(https://kustomize.io/) 
 
 * Create a folder with name of `k8s` for keeping the deployment files of Petclinic App on Kubernetes cluster.
 
 * Create a `docker-compose.yml` under `k8s` folder with the following content as to be used in conversion the k8s files.
+
+# Bu docker-compose.yml file'ini, k8s yaml files larina cevirecegiz. Icerikdeki herseyi cevirmiyor (mesela depends on) bunlar icinde labell lar ile ek bilgi giriliyor, bu yuzden burada sadece cevirilecek olanlari yazdik. (https://kompose.io/) buradan bakilabilir.
+# Daha onceki docker-compose.yml file'ini kullanmiyoruz cunku burada 'Values' variable'i ile imageleri helm repodan alcak.
 
 ```yaml
 version: '3'
@@ -3255,31 +3268,33 @@ rm -r petclinic_chart/templates/*
 * Convert the `docker-compose.yml` into k8s/petclinic_chart/templates objects and save under `k8s/petclinic_chart` folder.
 
 ```bash
-kompose convert -f k8s/docker-compose.yml -o k8s/petclinic_chart/templates
+kompose convert -f docker-compose.yml -o petclinic_chart/templates
 ```
 
 * Update deployment files with `init-containers` to launch microservices in sequence. See [Init Containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
 
+# Daha once uygulamamizi servisler (Config-server discovery-server Api-gateway customer ve visit) ile ayaga kaldiriyorduk, kubernetes de initcontainers ile yapacagiz. 
+# Copy to below 'resources: {}' in ...deployment.yml files and 'initContainers' must be same line (indentation) with 'containers..'
 ```yaml
-# for discovery server
+# for discovery server deployment files
       initContainers:
       - name: init-config-server
         image: busybox
         command: ['sh', '-c', 'until nc -z config-server:8888; do echo waiting for config-server; sleep 2; done;']
-# for all other microservices except config-server and discovery-server
+# for all other microservices deployment except config-server and discovery-server
       initContainers:
       - name: init-discovery-server
         image: busybox
         command: ['sh', '-c', 'until nc -z discovery-server:8761; do echo waiting for discovery-server; sleep 2; done;']
 ``` 
-
 * Update `spec.rules.host` field of `api-gateway-ingress.yaml` file as below.
 
 ```yaml
-'{{ .Values.DNS_NAME }}'.
+'{{ .Values.DNS_NAME }}'
 ```
 
 * Add `k8s/petclinic_chart/values-template.yaml` file as below.
+# Daha once jenkins server da tag ler olusturmustuk, imagelerin taglerini oradan alacak.
 
 ```yaml
 IMAGE_TAG_CONFIG_SERVER: "${IMAGE_TAG_CONFIG_SERVER}"
@@ -3292,10 +3307,10 @@ IMAGE_TAG_ADMIN_SERVER: "${IMAGE_TAG_ADMIN_SERVER}"
 IMAGE_TAG_HYSTRIX_DASHBOARD: "${IMAGE_TAG_HYSTRIX_DASHBOARD}"
 IMAGE_TAG_GRAFANA_SERVICE: "${IMAGE_TAG_GRAFANA_SERVICE}"
 IMAGE_TAG_PROMETHEUS_SERVICE: "${IMAGE_TAG_PROMETHEUS_SERVICE}"
-DNS_NAME: <"DNS Name of your application">
+DNS_NAME: <"DNS Name of your application">                         #Enter your dns name not "rancher dns"
 ```
 
-* Check if the petclinic_chart working as expected.
+* Check if the petclinic_chart working as expected. (Test etmek icin yapiyoruz)
 
 ```bash
 export IMAGE_TAG_CONFIG_SERVER="testing-image-1"    
@@ -3308,9 +3323,10 @@ export IMAGE_TAG_ADMIN_SERVER="testing-image-7"
 export IMAGE_TAG_HYSTRIX_DASHBOARD="testing-image-8"
 export IMAGE_TAG_GRAFANA_SERVICE="testing-image-9"
 export IMAGE_TAG_PROMETHEUS_SERVICE="testing-image-10"
-# create values.yaml file from template by updating with environments variables
+
+# create values.yaml file from template by updating with environments variables(run inside 'petclinic-micro...' if you're inside k8s cd..)
 envsubst < k8s/petclinic_chart/values-template.yaml > k8s/petclinic_chart/values.yaml
-# test petclinic_chart
+# test petclinic_chart (Bu komut bize chart olusturacak ve dry run ile cikti olarak konsolda gorecegiz buda test amacli)
 helm install ptest k8s/petclinic_chart/ --namespace dev --debug --dry-run
 ```
 
@@ -3329,7 +3345,7 @@ helm plugin install https://github.com/hypnoglow/helm-s3.git
 * Initialize the Amazon S3 Helm repository.
 
 ```bash
-AWS_REGION=us-east-1 helm s3 init s3://petclinic-helm-charts/stable/myapp 
+AWS_REGION=us-east-1 helm s3 init s3://yasin-petclinic-helm-charts/stable/myapp 
 ```
 
 * The command creates an index.yaml file in the target to track all the chart information that is stored at that location.
@@ -3337,14 +3353,17 @@ AWS_REGION=us-east-1 helm s3 init s3://petclinic-helm-charts/stable/myapp
 * Verify that the index.yaml file was created.
 
 ```bash
-aws s3 ls s3://petclinic-helm-charts/stable/myapp/
+aws s3 ls s3://yasin-petclinic-helm-charts/stable/myapp/
 ```
 
 * Add the Amazon S3 repository to Helm on the client machine. 
 
 ```bash
-AWS_REGION=us-east-1 helm repo add stable-petclinicapp s3://petclinic-helm-charts/stable/myapp/
+helm repo list   # rancher-latest  https://releases.rancher.com/server-charts/latest repoyu goruyoruz.
+
+AWS_REGION=us-east-1 helm repo add stable-petclinicapp s3://yasin-petclinic-helm-charts/stable/myapp/
 ```
+* Simdi stable-petclinicapp chart'ini repoya ekledik.
 
 * Update `version` field of `k8s/petclinic_chart/Chart.yaml` file as below for testing.
 
@@ -3356,14 +3375,15 @@ version: 1.1.1
 
 ```bash
 cd k8s
-helm package petclinic_chart/ 
+helm package petclinic_chart/   #petclinic_chart-1.1.1.tgz zipli dosya olustu k8s icerisinde kontrol edebilirsin.  
 ```
 
 * Store the local package in the Amazon S3 Helm repository.
 
 ```bash
-helm s3 push ./petclinic_chart-1.1.1.tgz stable-petclinicapp
+HELM_S3_MODE=3 AWS_REGION=us-east-1 helm s3 push ./petclinic_chart-1.1.1.tgz stable-petclinicapp
 ```
+# petclinic_chart-1.1.1.tgz chartini s3 'e ekledik
 
 * Search for the Helm chart.
 
@@ -3439,10 +3459,24 @@ git push origin release
 
 ## MSP 25 - Create Staging and Production Environment with Rancher
 
-* To provide access of Rancher to the cloud resources, create a `Cloud Credentials` for AWS on Rancher and name it as `Call-AWS-Training-Account`.
+# Bundan sonraki islemleri rancher sayfasinda yapiyoruz.
+# For a Helm installation, run komutunu burada calistirarak password olusturup, rancher sayfasina girerek devam ediyoruz. 
+# rancher şifremi unuttum:
+KUBECONFIG=~/.kube/config
+kubectl --kubeconfig $KUBECONFIG -n cattle-system exec $(kubectl --kubeconfig $KUBECONFIG -n cattle-system get pods -l app=rancher | grep '1/1' | head -1 | awk '{ print $1 }') -- reset-password
 
-* Create a `Node Template` on Rancher with following configuration for to be used while launching the EC2 instances and name it as `Call-AWS-RancherOs-Template`.
+- Click 'local' --> Click 'Download Kubeconfig' (local cluster config dosyasi iniyor) Bu dosyanin icerigini terminalde .kube/config dosyasina rewrite yapistiralim. "overwrite onaylamak gerekiyor save icin"
 
+- "Terminalde 'kubectl get nodes' ile controlplane,etcd,worker gormemiz gerekiyor"
+
+* To provide access of Rancher to the cloud resources, create a `Cloud Credentials` for AWS on Rancher and name it as `Yasin-AWS-Training-Account`.
+* Rancher da AWS servisleri ile ilgili islem yapabilmek icin.
+- Rancher sayfasinda, Home(uc cizgi)--> Cluster management--> Cloud Credentials --> create--> aws --> any name and credentials. 
+
+* Create a `Node Template` on Rancher with following configuration for to be used while launching the EC2 instances and name it as `Yasin-AWS-RancherOs-Template`.
+
+# Bundan sonra ayni islemleri yaparken kolaylik olsun diye template olsuturuyoruz.
+Home--> Cluster Managament--> RKE1 Configuration --> Node Templates --> Add Template --> AWS --> Default VPC --> Asagidaki degerler. 
 ```text
 Region            : us-east-1
 Security group    : create new sg (rancher-nodes)
@@ -3463,7 +3497,7 @@ git branch feature/msp-26
 git checkout feature/msp-26
 ```
 
-* Create a Kubernetes cluster using Rancher with RKE and new nodes in AWS  and name it as `petclinic-cluster-staging`.
+* Create a Kubernetes cluster using Rancher page with RKE and new nodes in AWS  and name it as `petclinic-cluster-staging`.
 
 ```text
 Cluster Type      : Amazon EC2
@@ -3473,14 +3507,15 @@ etcd              : checked
 Control Plane     : checked
 Worker            : checked
 ```
-
+# it will take some time to get ready refresh the page to see the cluster.
 * Create `petclinic-staging-ns` namespace on `petclinic-cluster-staging` with Rancher.
+# Cluster--> Project/namespaces--> Create namespaces (on default)--> name:petclinic-staging-ns -->default--> create
 
-* Create a Jenkins Job and name it as `create-ecr-docker-registry-for-petclinic-staging` to create Docker Registry for `Staging` manually on AWS ECR.
+* Create a Jenkins Job (freestyle job) and name it as `create-ecr-docker-registry-for-petclinic-staging` to create Docker Registry for `Staging` manually on AWS ECR.
 
 ``` bash
 PATH="$PATH:/usr/local/bin"
-APP_REPO_NAME="clarusway-repo/petclinic-app-staging"
+APP_REPO_NAME="yasin-repo/petclinic-app-staging"
 AWS_REGION="us-east-1"
 
 aws ecr create-repository \
@@ -3491,6 +3526,7 @@ aws ecr create-repository \
 ```
 
 * Prepare a script to create ECR tags for the staging docker images and name it as `prepare-tags-ecr-for-staging-docker-images.sh` and save it under `jenkins` folder.
+# Onceki scriptler gibi ancak burada 'release' yerine 'staging' yaziyoruz.
 
 ``` bash
 MVN_VERSION=$(. ${WORKSPACE}/spring-petclinic-admin-server/target/maven-archiver/pom.properties && echo $version)
@@ -3531,7 +3567,7 @@ docker build --force-rm -t "${IMAGE_TAG_PROMETHEUS_SERVICE}" "${WORKSPACE}/docke
 * Prepare a script to push the staging docker images to the ECR repo and name it as `push-staging-docker-images-to-ecr.sh` and save it under `jenkins` folder.
 
 ``` bash
-aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}  #Ecr'a push yapma komutu
 docker push "${IMAGE_TAG_ADMIN_SERVER}"
 docker push "${IMAGE_TAG_API_GATEWAY}"
 docker push "${IMAGE_TAG_CONFIG_SERVER}"
@@ -3545,8 +3581,9 @@ docker push "${IMAGE_TAG_PROMETHEUS_SERVICE}"
 ```
 
 * Install `Rancher CLI` on Jenkins Server.
+# Rancher CLI will be use inside the jenkins pipeline to deploy application inside cluster created by rancher.
 
-```bash
+```bash (run on home directory:ec2-user@jenkins-server)
 curl -SsL "https://github.com/rancher/cli/releases/download/v2.4.13/rancher-linux-amd64-v2.4.13.tar.gz" -o "rancher-cli.tar.gz"
 tar -zxvf rancher-cli.tar.gz
 sudo mv ./rancher-v2.4.13/rancher /usr/local/bin/rancher
@@ -3556,6 +3593,9 @@ rancher --version
   
 * Create Rancher API Key [Rancher API Key](https://rancher.com/docs/rancher/v2.x/en/user-settings/api-keys/#creating-an-api-key) to enable access to the `Rancher` server. Take note, `Access Key (username)` and `Secret Key (password)`.
 
+# We need to create credentials for jenkins to connect rancher instance
+# Rancher page--> Click Avatar--> Account&API keys--> Create API key--> (scope & A month from now )--> create *Don't close page copy information somewhere you will not see the page again. Then go to jenkins page.
+
 * Create a credentials with kind of `Username with password` on Jenkins Server using the `Rancher API Key`.
 
   * On jenkins server, select Manage Jenkins --> Manage Credentials --> Jenkins -->   Global credentials (unrestricted) --> Add Credentials.
@@ -3564,26 +3604,35 @@ rancher --version
 
   * Define an id like `rancher-petclinic-credentials`.
 
+* On some systems we need to install Helm S3 plugin as Jenkins user to be able to use S3 with pipeline script. 
+
+``` bash
+sudo su -s /bin/bash jenkins
+export PATH=$PATH:/usr/local/bin
+helm version
+helm plugin install https://github.com/hypnoglow/helm-s3.git
+exit from jenkins user
+
 * Create a Staging Pipeline on Jenkins with name of `petclinic-staging` with following script and configure a `cron job` to trigger the pipeline every Sundays at midnight (`59 23 * * 0`) on `release` branch. `Petclinic staging pipeline` should be deployed on permanent staging-environment on `petclinic-cluster` Kubernetes cluster under `petclinic-staging-ns` namespace.
 
 * Prepare a Jenkinsfile for `petclinic-staging` pipeline and save it as `jenkinsfile-petclinic-staging` under `jenkins` folder.
 
 ``` groovy
 pipeline {
-    agent { label "master" }
+    agent any
     environment {
         PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
         APP_NAME="petclinic"
-        APP_REPO_NAME="clarusway-repo/petclinic-app-staging"
+        APP_REPO_NAME="yasin-repo/petclinic-app-staging"
         AWS_ACCOUNT_ID=sh(script:'export PATH="$PATH:/usr/local/bin" && aws sts get-caller-identity --query Account --output text', returnStdout:true).trim()
         AWS_REGION="us-east-1"
         ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        RANCHER_URL="https://rancher.clarusway.us"
+        RANCHER_URL="https://rancher.clarusway.us" # rancher url https://rancher.devopsyasin.com/
         // Get the project-id from Rancher UI (petclinic-cluster-staging namespace, View in API, copy projectId )
-        RANCHER_CONTEXT="petclinic-cluster:project-id" 
+        RANCHER_CONTEXT="petclinic-cluster:project-id"    # Project/Namespaces-->click ... on petclinic staging ns-->edit yaml--> copy "c-rn2r8:p-skwz6" here
        //First part of projectID
-        CLUSTERID="petclinic-cluster"
-        RANCHER_CREDS=credentials('rancher-petclinic-credentials')
+        CLUSTERID="petclinic-cluster"   # paste first part of id "c-rn2r8"
+        RANCHER_CREDS=credentials('rancher-petclinic-credentials') # From jenkins credential which name we gave
     }
     stages {
         stage('Package Application') {
@@ -3637,8 +3686,8 @@ pipeline {
                 sh "envsubst < k8s/petclinic_chart/values-template.yaml > k8s/petclinic_chart/values.yaml"
                 sh "sed -i s/HELM_VERSION/${BUILD_NUMBER}/ k8s/petclinic_chart/Chart.yaml"
                 sh "rancher kubectl delete secret regcred -n petclinic-staging-ns || true"
-                sh """
-                rancher kubectl create secret generic regcred -n petclinic-staging-ns \
+                sh """          (Bu kisim "https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/")
+                rancher kubectl create secret generic regcred -n petclinic-staging-ns \  
                 --from-file=.dockerconfigjson=$JENKINS_HOME/.docker/config.json \
                 --type=kubernetes.io/dockerconfigjson
                 """
@@ -3662,8 +3711,8 @@ pipeline {
 }
 ```
 
-* Create an `A` record of `staging-petclinic.clarusway.us` in your hosted zone (in our case `clarusway.us`) using AWS Route 53 domain registrar and bind it to your `petclinic cluster`.
-
+* Create an `A` record of `staging-petclinic.devopsyasin.com` in your hosted zone using AWS Route 53 domain registrar and bind it to your `petclinic cluster`.
+# route53--> Quick create record--> staging-petclinic--> A routes.. --> Value:paste Public IP one of the cluster node--> create record
 * Commit the change, then push the script to the remote repo.
 
 ``` bash
@@ -3686,7 +3735,7 @@ git checkout feature/msp-27
 ```
 
 * Create a Kubernetes cluster using Rancher with RKE and new nodes in AWS (on one EC2 instance only) and name it as `petclinic-cluster`.
-
+# Cluster management--> create--> Enter information below --> create
 ```text
 Cluster Type      : Amazon EC2
 Name Prefix       : petclinic-k8s-instance
@@ -3696,13 +3745,11 @@ Control Plane     : checked
 Worker            : checked
 ```
 
-* Create `petclinic-prod-ns` namespace on `petclinic-cluster` with Rancher.
-
 * Create a Jenkins Job and name it as `create-ecr-docker-registry-for-petclinic-prod` to create Docker Registry for `Production` manually on AWS ECR.
 
-``` bash
+``` bash 
 PATH="$PATH:/usr/local/bin"
-APP_REPO_NAME="clarusway-repo/petclinic-app-prod"
+APP_REPO_NAME="yasin-repo/petclinic-app-prod"
 AWS_REGION="us-east-1"
 
 aws ecr create-repository \
@@ -3767,19 +3814,19 @@ docker push "${IMAGE_TAG_PROMETHEUS_SERVICE}"
 ```
 
 - At this stage, we will use Amazon RDS instead of mysql pod and service. Create a mysql database on AWS RDS.
-
+# Create database on AWS Console--> Standart Create--> Enter inf. below
   - Engine options: MySQL
   - Version : 5.7.30
   - Templates: Free tier
   - DB instance identifier: petclinic
-  - Master username: root
+  - Master username: root              # Normalde production ortamda root olmaz burada egitim amacli, islemleri yapabilmek adina
   - Master password: petclinic
-  - Public access: Yes
-  - Initial database name: petclinic
+  - Public access: Yes                 
+  - Additional Configuration --> Initial database name: petclinic
+  
+- Delete mysql-server-deployment.yaml file from k8s/petclinic_chart/templates folder. (Dursun lazim olabilir diye silmek yerine k8s folderina tasiyabilirsin)
 
-- Delete mysql-server-deployment.yaml file from k8s/petclinic_chart/templates folder.
-
-- Update k8s/petclinic_chart/templates/mysql-server-service.yaml as below.
+- Update k8s/petclinic_chart/templates/mysql-server-service.yaml as below. 
 
 ```yaml
 apiVersion: v1
@@ -3787,7 +3834,7 @@ kind: Service
 metadata:
   annotations:
     kompose.cmd: kompose convert -f docker-compose-local-db.yml
-    kompose.version: 1.22.0 (955b78124)
+    kompose.version: 1.26.1 (a9d05d509)
   labels:
     io.kompose.service: mysql-server
   name: mysql-server
@@ -3795,26 +3842,34 @@ spec:
   type: ExternalName
   externalName: petclinic.cbanmzptkrzf.us-east-1.rds.amazonaws.com # Change this line with the endpoint of your RDS.
 ```
+# Values.yaml ve values-template.yaml dosyalarinda DNS_NAME: "petclinic-prod.devopsyasin.com" yaptik ve A-record olusturacagiz bu isimde.
+# route53--> Quick create record--> petclinic-prod--> A routes.. --> Value:paste Public IP one of the cluster node--> create record
 
-* Create a `Production Pipeline` on Jenkins with name of `petclinic-prod` with following script and configure a `github-webhook` to trigger the pipeline every `commit` on `main` branch. `Petclinic production pipeline` should be deployed on permanent prod-environment on `petclinic-cluster` Kubernetes cluster under `petclinic-prod-ns` namespace.
 
 * Prepare a Jenkinsfile for `petclinic-prod` pipeline and save it as `jenkinsfile-petclinic-prod` under `jenkins` folder.
+# Once asagidaki jenkins file olusturdukdan sonra jenkins-pipeline kuralim. 
+
+# Rancher--> petclinic cluster-->Projects Namespace-->Create Namespace(default)--> Name: petclinic-prod-ns-->create
+# Click ... beside petclinic --> edit yaml --> copy Project ID (you will use this information below Jenkins-petclinic-prod)
+
+* Create `petclinic-prod-ns` namespace on `petclinic-cluster` with Rancher.
+# Update "url, context, ıd, s3" in jenkins file. 
 
 ``` groovy
 pipeline {
-    agent { label "master" }
+    agent any
     environment {
         PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
         APP_NAME="petclinic"
-        APP_REPO_NAME="clarusway-repo/petclinic-app-prod"
+        APP_REPO_NAME="yasin-repo/petclinic-app-prod"
         AWS_ACCOUNT_ID=sh(script:'export PATH="$PATH:/usr/local/bin" && aws sts get-caller-identity --query Account --output text', returnStdout:true).trim()
         AWS_REGION="us-east-1"
         ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        RANCHER_URL="https://rancher.clarusway.us"
+        RANCHER_URL="https://rancher.devopsyasin.com"
         // Get the project-id from Rancher UI (petclinic-cluster-staging namespace, View in API, copy projectId )
-        RANCHER_CONTEXT="petclinic-cluster:project-id" 
+        RANCHER_CONTEXT="c-nkvt9:p-dhq7k" 
        //First part of projectID
-        CLUSTERID="petclinic-cluster"
+        CLUSTERID="c-nkvt9"
         RANCHER_CREDS=credentials('rancher-petclinic-credentials')
     }
     stages {
@@ -3877,9 +3932,9 @@ pipeline {
                 sh "rm -f k8s/config"
                 sh "rancher cluster kf $CLUSTERID > k8s/config"
                 sh "chmod 400 k8s/config"
-                sh "helm repo add stable-petclinic s3://petclinic-helm-charts/stable/myapp/"
+                sh "helm repo add stable-petclinic s3://yasin-petclinic-helm-charts/stable/myapp/"
                 sh "helm package k8s/petclinic_chart"
-                sh "helm s3 push petclinic_chart-${BUILD_NUMBER}.tgz stable-petclinic"
+                sh "helm s3 push --force petclinic_chart-${BUILD_NUMBER}.tgz stable-petclinic"
                 sh "helm repo update"
                 sh "AWS_REGION=$AWS_REGION helm upgrade --install petclinic-app-release stable-petclinic/petclinic_chart --version ${BUILD_NUMBER} --namespace petclinic-prod-ns --kubeconfig k8s/config"
             }
@@ -3912,6 +3967,10 @@ git checkout main
 git merge release
 git push origin main
 ```
+* Create a `Production Pipeline` on Jenkins with name of `petclinic-prod` with following script and configure a `github-webhook` to trigger the pipeline every `commit` on `main` branch. `Petclinic production pipeline` should be deployed on permanent prod-environment on `petclinic-cluster` Kubernetes cluster under `petclinic-prod-ns` namespace. 
+
+# New item--> Name:petclinic-prod:pipeline--> pipeline script from scm:git--> Githubrepo url-->main-->path:./jenkins/jenkinsfile-petclinic-prod--> Save
+# Kodlar calisiyorsa Rancher da Workload da servisleri gormus olmamiz gerekiyor
 
 ## MSP 28 - Setting Domain Name and TLS for Production Pipeline with Route 53
 
@@ -3923,27 +3982,29 @@ git branch feature/msp-28
 git checkout feature/msp-28
 ```
 
-* Create an `A` record of `petclinic.clarusway.us` in your hosted zone (in our case `clarusway.us`) using AWS Route 53 domain registrar and bind it to your `petclinic cluster`.
+* Create an `A` record of `petclinic.devopsyasin.com`(/k8s/petclinic/template/values template.yml da ne yaziyorsa onunla ayni olmali) in your hosted zone using AWS Route 53 domain registrar and bind it to your `petclinic cluster`.
+# route53--> create record--> simple record--> A class--> herhangi bir instance PublicIP kopyala--> create
 
 * Configure TLS(SSL) certificate for `petclinic.clarusway.us` using `cert-manager` on petclinic K8s cluster with the following steps.
 
 * Log into Jenkins Server and configure the `kubectl` to connect to petclinic cluster by getting the `Kubeconfig` file from Rancher and save it as `$HOME/.kube/config` or set `KUBECONFIG` environment variable.
 
 ```bash
-#create petclinic-config file under home folder(/home/ec2-user).
+#create petclinic-config file under home folder(/home/ec2-user/.kube).
 nano petclinic-config
-# paste the content of kubeconfig file and save it.
+# paste the content of kubeconfig file from rancher page and save it.
 chmod 400 petclinic-config
 export KUBECONFIG=/home/ec2-user/.kube/petclinic-config
 # test the kubectl with petclinic namespaces
 kubectl get ns
 ```
 
-* Install the `cert-manager` on petclinic cluster. See [Cert-Manager info](https://cert-manager.io/docs/).
+* Install the `cert-manager` on petclinic cluster. See [Cert-Manager info](https://cert-manager.io/docs/). (Sertifikayi manual olusturmayip agent sayesinde yapilacak)
 
-  * Create the namespace for cert-manager
+  * Create the namespace for cert-manager 
 
-  ```bash
+  ```bash(/home/ec2-user)
+    kubectl get ns                        # name spaceleri kontrol edebilirsin
     kubectl create namespace cert-manager
   ```
 
@@ -3962,16 +4023,16 @@ kubectl get ns
   * Install the `Custom Resource Definition` resources separately
 
   ```bash
-  kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.0/cert-manager.crds.yaml
+  kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml   (ilave resources olusturduk -certificaterequest- biri)
   ```
 
-  * Install the cert-manager Helm chart
+  * Install the cert-manager Helm chart 
 
   ```bash
   helm install \
   cert-manager jetstack/cert-manager \
   --namespace cert-manager \
-  --version v1.5.0
+  --version v1.7.1
   ```
 
   * Verify that the cert-manager is deployed correctly.
@@ -3981,6 +4042,7 @@ kubectl get ns
   ```
 
 * Create `ClusterIssuer` with name of `tls-cluster-issuer-prod.yml` for the production certificate through `Let's Encrypt ACME` (Automated Certificate Management Environment) with following content by importing YAML file on Ranhcer and save it under `k8s` folder. *Note that certificate will only be created after annotating and updating the `Ingress` resource.*
+# /k8s folder altinda asagidaki yaml file olusturuyoruz.  
 
 ```yaml
 apiVersion: cert-manager.io/v1
@@ -3993,7 +4055,7 @@ spec:
     # The ACME server URL
     server: https://acme-v02.api.letsencrypt.org/directory
     # Email address used for ACME registration
-    email: callahan@clarusway.com
+    email: pakyasin23@gmail.com
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
       name: letsencrypt-prod
@@ -4006,26 +4068,40 @@ spec:
 
 * Check if `ClusterIssuer` resource is created.
 
-```bash
+```bash (cd petclinic-microservis..)
 kubectl apply -f k8s/tls-cluster-issuer-prod.yml
 kubectl get clusterissuers letsencrypt-prod -n cert-manager -o wide
 ```
+### Doğrulama işlemi nasıl çalışır.
+1. server admin Let's Encrypt'e der ki:
+Bu benim DNS'im (http://example.com). Buna bir certificate ver.
+2. Let's Encrypt de der ki:
+Senin bu sitenin sahibi olduğunu nereden bileyim. Sana bazı görevler vereceğim. (challange)
+    1. görevin.
+	Sana bir kere kullancağın bir key vereceğim(nonce). Bunu private key pair'in ile imzala. Böylelikle key pairini senin kontrol ettiğini anlayabileyim.
+    2. Bir file'ı (ed98) https://example.com/8303'e koy.
+3. server admin görevleri yapar.
+4. Let's Encrypt kontrol eder. Doğruysa sertifika verir. (validation)
+###
+
+# Rancher-->Service Discovery--> Ingress-->Burada route53 deki adres olmali-->...Edit yaml--> Asagidak annotations birde spec kismini buraya yapistir.
+# Olusan ingress linkini tiklayinca sifre cikacak challange oldu sertfika olusacak.
 
 * Issue production Let’s Encrypt Certificate by annotating and adding the `api-gateway` ingress resource with following through Rancher.
-
+# Aslinda burayi su sekilde yapabilirdik 
 ```yaml
 metadata:
   name: api-gateway
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-spec:
-  tls:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Bu satiri kopyala
+spec:                           
+  tls:                          # Bu satirdan asagisini rancher'a kopyala (Rules ile ayni hizada)
   - hosts:
-    - petclinic.clarusway.us
+    - petclinic.clarusway.us    
     secretName: petclinic-tls
 ```
 
-* Check and verify that the TLS(SSL) certificate created and successfully issued to `petclinic.clarusway.us` by checking URL of `https://petclinic.clarusway.us`
+* Check and verify that the TLS(SSL) certificate created and successfully issued to `yasin-petclinic.devopsyasin.com` by checking URL of `https://yasin-petclinic..`
 
 * Commit the change, then push the tls script to the remote repo.
 
@@ -4042,6 +4118,10 @@ git push origin main
 
 
 ## MSP 29 - Monitoring with Prometheus and Grafana
+
+# Rancher da "Grafana service" NodePort yapildi, Rancher--> Services de yazan port dan kontrol edelim, grafana acilmali. Burada url karsisinda 9090--> 9091 diye degistir, daha once docker compose file da 9090 yapmistik
+# Ayni sekilde Prometheus Service 'NodePort' yapiyoruz. Kontrol edelim prometheus calismali. 
+# petclinic-micro... docker folder icerisinde prometheus grafana docker filelari gorebilirsin bu sekilde kullaniyoruz.
 
 * Change the port of Prometheus Service to `9090`, so that Grafana can scrape the data.
 
