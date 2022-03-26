@@ -123,13 +123,6 @@ docker push <account id>.dkr.ecr.us-east-1.amazonaws.com/clarusshop:latest
 ### Write a Task Definition
 
 - Task definitions specify how Amazon ECS deploys the application containers across the cluster.
-- Before begin we need to create IAM role:
-
-```bash
-Use case : Elastic Container Service >>> Elastic Container Service task
-Policy.  : AmazonECSTaskExecutionRolePolicy
-Name     : PolicyforECS
-```
 
 - From the Amazon ECS left navigation menu, select Task Definitions.
 
