@@ -1,0 +1,2 @@
+docker exec [mysql_container_name] /usr/bin/mysqldump -u [mysql_username] --password=[mysql_password] [database_name] > [destination_path]
+Ex: docker exec mysql-server /usr/bin/mysqldump -u root --password=Y123456 mysql_test > ~/mysql_backup/backup_db.sql

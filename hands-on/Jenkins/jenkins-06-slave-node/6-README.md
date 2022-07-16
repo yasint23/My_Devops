@@ -1,23 +1,8 @@
-# Hands-on Jenkins-06 : Slave Node Configuration
-
-Purpose of the this hands-on training is to learn how to configure a slave node to Jenkins Server. 
-
-## Learning Outcomes
-
-At the end of the this hands-on training, students will be able to;
+# Slave Node Configuration
 
 - configure a slave node
 
 - run jobs on slave node.
-
-## Outline
-
-- Part 1 - Slave Node Configuration
-
-- Part 2 - Free Style Project on Slave Node
-
-- Part 3 - Pipeline Project on Slave Node
-
 
 ## Part 1 - Slave Node Configuration
 
