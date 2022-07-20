@@ -1,0 +1,229 @@
+version: '3.9'
+
+services:
+  edutest-fe:
+    container_name: edutest-fe
+    image: 052449593646.dkr.ecr.eu-west-1.amazonaws.com/master/edutest-fe:latest
+    pull_policy: always
+    healthcheck:
+      test: curl -s localhost
+      interval: 3s
+      retries: 10
+      start_period: 30s
+      timeout: 5s   
+    restart: always
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://edutest-server:5000"
+    ports:
+      - "80:80"
+    volumes:
+      - "edutest-fe-vol:/var/lib/edutest-fe"
+    networks:
+      - kypnt-test
+
+  kypnt-mysql:
+    container_name: kypnt-mysql
+    image: mysql:8.0.28
+    environment:
+      MYSQL_ROOT_PASSWORD: Ug5YCpXFKNe3gy
+      MYSQL_USER: kps
+      MYSQL_PASS: Ug5YCpXFKNe3gy
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=Ug5YCpXFKNe3gy --execute \"SHOW DATABASES;\""
+      interval: 3s
+      retries: 10
+      start_period: 5s
+      timeout: 5s   
+    restart: always
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://edutest-server:5000"
+    ports:
+      - "3306:3306"
+    volumes:
+      - "/root/docker/kypnt-mysql/conf.d:/etc/mysql/conf.d"
+      - "mysqldata-vol:/var/lib/mysql"
+    networks:
+      - kypnt-test
+
+  service-registry:
+    container_name: service-registry
+    image: 052449593646.dkr.ecr.eu-west-1.amazonaws.com/develop/service-registry:latest
+    pull_policy: always
+    restart: always
+    environment:
+      spring.profiles.active: test
+      SERVER_PORT: 8761
+      CONFIG_SERVER_URL: http://config-server:8888/
+    healthcheck:
+      test: curl -s localhost:8761/api/health-check | jq --raw-output '.fileName' | grep 'application.yml'
+      interval: 3s
+      retries: 10
+      start_period: 5s
+      timeout: 5s      
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://edutest-server:5000"
+    ports:
+      - "8761:8761"
+    volumes:
+      - "service-registry-vol:/var/lib/service-registry"
+    networks:
+      - kypnt-test
+
+  config-server:
+    container_name: config-server
+    image: 052449593646.dkr.ecr.eu-west-1.amazonaws.com/develop/config-server:latest
+    pull_policy: always
+    restart: always
+    environment:
+      spring.profiles.active: test
+      SERVER_PORT: 8888
+      SERVICE_REGISTRY_URL: http://service-registry:8761/
+    healthcheck:
+      test: curl -s localhost:8888/api/health-check | jq --raw-output '.fileName' | grep 'application-test.yml'
+      interval: 3s
+      retries: 10
+      start_period: 20s
+      timeout: 5s  
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://edutest-server:5000"
+    ports:
+      - "8888:8888"
+    volumes:
+      - "config-server-vol:/var/lib/config-server"
+    networks:
+      - kypnt-test
+    depends_on:
+      service-registry:
+        condition: service_healthy
+
+  api-gateway:
+    container_name: api-gateway
+    image: 052449593646.dkr.ecr.eu-west-1.amazonaws.com/develop/api-gateway:latest
+    pull_policy: always
+    restart: always
+    environment:
+      spring.profiles.active: test
+      CONFIG_SERVER_URL: http://config-server:8888/
+      AUTOHEAL_CONTAINER_LABEL: all
+    healthcheck:
+      test: curl -s localhost:9000/api/health-check | jq --raw-output '.fileName' | grep 'api-gateway-test.yml'
+      interval: 3s
+      retries: 10
+      start_period: 5s
+      timeout: 5s
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://edutest-server:5000"
+    ports:
+      - "9000:9000"
+    volumes:
+      - "api-gateway-vol:/var/lib/api-gateway"
+    networks:
+      - kypnt-test
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  test-centre-service:
+    container_name: test-centre-service
+    image: 052449593646.dkr.ecr.eu-west-1.amazonaws.com/develop/test-centre-service:latest
+    pull_policy: always
+    restart: always
+    environment:
+      spring.profiles.active: test
+      CONFIG_SERVER_URL: "http://config-server:8888/"
+      SERVER_PORT: 9002
+      logging.level.root: INFO
+      SPRING_DATASOURCE_URL: jdbc:mysql://kypnt-mysql:3306
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Ug5YCpXFKNe3gy
+      IAM_SERVICE_URL: "http://iam-service:9001/"
+    healthcheck:
+      test: curl -s localhost:9002/api/health-check | jq --raw-output '.FILE_NAME' | grep 'test-centre-service-test.yml'
+      interval: 3s
+      retries: 10
+      start_period: 30s
+      timeout: 5s
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://edutest-server:5000"
+    ports:
+      - "9002:9002"
+    volumes:
+      - "test-centre-service-vol:/var/lib/test-centre-service"
+    networks:
+      - kypnt-test
+    depends_on:
+      kypnt-mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  iam-service:
+    container_name: iam-service
+    image: 052449593646.dkr.ecr.eu-west-1.amazonaws.com/develop/iam-service:latest
+    pull_policy: always
+    restart: always
+    environment:
+      spring.profiles.active: test
+      CONFIG_SERVER_URL: http://config-server:8888/
+      SERVER_PORT: 9001
+      logging.level.root: INFO
+      SPRING_DATASOURCE_URL: jdbc:mysql://kypnt-mysql:3306
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Ug5YCpXFKNe3gy
+      AUTOHEAL_CONTAINER_LABEL: all
+    healthcheck:
+      test: curl -s localhost:9001/api/health-check | jq --raw-output '.data.fileName' | grep 'iam-service-test.yml'
+      interval: 3s
+      retries: 10
+      start_period: 20s
+      timeout: 5s
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://edutest-server:5000"
+    ports:
+      - "9001:9001"
+    volumes:
+      - "iam-service-vol:/var/lib/iam-service"
+    networks:
+      - kypnt-test
+    depends_on:
+      kypnt-mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    tty: true
+    container_name: autoheal
+    restart: always
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  mysqldata-vol:
+  edutest-fe-vol:
+  api-gateway-vol:
+  config-server-vol:
+  service-registry-vol:
+  test-centre-service-vol:
+  iam-service-vol:
+
+networks:
+  kypnt-test:
+    driver: bridge

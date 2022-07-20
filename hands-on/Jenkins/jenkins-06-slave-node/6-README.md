@@ -1,4 +1,4 @@
-# Slave Node Configuration
+su # Slave Node Configuration
 
 - configure a slave node
 
@@ -83,7 +83,7 @@ exit
 ```bash
 mkdir bin
 cd bin
-wget http://<jenkins_master_ip>:8080/jnlpJars/slave.jar
+wget http://<jenkins_master_ip>:8080/jnlpJars/slave.jar  
 ```
 
 - Go to Jenkins dashboard, click on "Manage Jenkins" from left hand menu.

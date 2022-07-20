@@ -1,0 +1,45 @@
+###################### PREVIOUS DOCKER-COMPOSE FILE ###############
+version: '2.1'
+services:
+  db:
+    image: mysql:8.0.28
+    restart: always
+    volumes:
+      - "edutest-fe-vol:/var/lib/edutest-fe"
+    environment:
+      - MYSQL_ROOT_PASSWORD=Ug5YCpXFKNe3gy
+      - MYSQL_DATABASE=
+      - MYSQL_USER=kps
+      - MYSQL_PASSWORD=Ug5YCpXFKNe3gy
+    ports:
+      - "3306:3306"
+
+  backend:
+    image: ktoreasy:latest
+    mem_limit: 300m
+    depends_on:
+      - db
+    environment:
+      - ENVIRONMENT=dev
+    restart: always
+    ports:
+      - "3510:3500"
+
+###################### PREVIOUS DOCKER-COMPOSE FILE ###############
+
+  dbBackup:
+    image: fradelg/mysql-cron-backup
+    depends_on:
+      - db
+    restart: always
+    volumes:
+      - ./db/KtorEasyDBSnap:/backup
+    environment:
+      - MYSQL_USER=kps
+      - MYSQL_PASS=Ug5YCpXFKNe3gy
+      - MYSQL_DB=
+      - CRON_TIME=0 0 * * *
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - TIMEOUT=10s
+      - INIT_BACKUP=1
