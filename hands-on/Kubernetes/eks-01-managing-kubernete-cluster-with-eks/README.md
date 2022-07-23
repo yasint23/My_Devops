@@ -1,53 +1,14 @@
 # Hands-on EKS-01 : Creating and Managing Kubernetes Cluster with AWS EKS
 
-## Learning Outcomes
-
-At the end of this hands-on training, students will be able to;
-
-- Learn to Create and Manage EKS Cluster with Worker Nodes
-
 ## Prerequisites
 
-1. AWS CLI with Configured Credentials
+1. AWS CLI Installation with Configured Credentials
 
-    <i>Short recap about </i> ***```aws configure```*** <i>command could be made,</i> ```.aws``` <i>directory and its contents might be shown to the students.</i>
+- CLI installation  
 
-2. kubectl installed
-
-if not;
-
-- You can go to
-  
-  - https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/ 
-  - https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html
-  
-and install with any method
-
-- AWS CLI installation
-  
-```text
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
-```
-- `kubectl` installation
-  
-```bash
-curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-mkdir -p $HOME/bin && mv ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
-echo 'export PATH=$PATH:$HOME/bin' >> ~/.bash_profile
-kubectl version --short --client
-```
-
-or
-
-```bash
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-kubectl version --client
-```
-
 
 - aws configuration
 
@@ -57,6 +18,19 @@ $ aws configure
   AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
   Default region name [None]: us-east-1
   Default output format [None]: json
+```
+
+2. kubectl installation
+
+- `kubectl` installation
+  
+```bash
+curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+mkdir -p $HOME/bin && mv ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+echo 'export PATH=$PATH:$HOME/bin' >> ~/.bash_profile
+kubectl version --short --client
+
 ```
 
 - Verify that you can see your cluster listed, when authenticated
