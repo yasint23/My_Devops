@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: >
   This Cloudformation Template creates a Docker machine on EC2 Instance. 
-  Docker Machine will run on Amazon Linux 2 (ami-026dea5602e368e96) EC2 Instance with
+  Docker Machine will run on Amazon Linux 2 (ami-ami-0cff7528ff583bf9a) EC2 Instance with
   custom security group allowing SSH connections from anywhere on port 22.
 
 Parameters:
@@ -28,7 +28,7 @@ Resources:
   DockerMachine:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-09d95fab7fff3776c
+      ImageId: ami-0cff7528ff583bf9a
       InstanceType: t2.micro
       KeyName: !Ref KeyPairName
       SecurityGroupIds:

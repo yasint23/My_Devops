@@ -4,4 +4,4 @@ RUN pip install -r requirements.txt
 COPY . /app
 WORKDIR /app
 EXPOSE 80
-CMD python ./clarusshop.py 
+CMD python ./myshop.py 
