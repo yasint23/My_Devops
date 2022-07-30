@@ -1,0 +1,13 @@
+        stage('Get Github Commit ID') {
+            steps {
+                script {
+                    // Checkout the repository and save the resulting metadata
+                    def scmVars = checkout([$class: 'GitSCM', branches: [[name: GITHUB_BRANCH]], extensions: [], userRemoteConfigs: [[credentialsId: 'omeraritoken', url: GITHUB_REPO]]])
+                    env.commitHash = scmVars.GIT_COMMIT.take(7)
+                    echo "commitHash"
+                    echo "${commitHash}"
+                    echo "scmVars.GIT_COMMIT"
+                    echo "${scmVars.GIT_COMMIT}"
+                }
+            }
+        }

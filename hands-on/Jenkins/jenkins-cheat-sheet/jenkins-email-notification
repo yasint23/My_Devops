@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    environment {
+        GITHUB_REPO = ""
+        GITHUB_BRANCH = "*/main"
+        REGION = "eu-west-1"
+        BUCKET = "yasinbucket"
+        FOLDER = "/var/lib/jenkins/workspace/yasinbucket/build/"
+        AWS_CREDENTIALS = "...."
+        list = readFile(file: 'mail.txt')
+        //URL_WEBHOOK = "https://
+    }
+    stages {
+        stage('Clone code from Github') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: GITHUB_BRANCH]], extensions: [], userRemoteConfigs: [[credentialsId: 'mytoken', url: GITHUB_REPO]]])
+            }
+        }
+        stage('Get Github Commit ID') {
+            steps {
+                script {
+                    // Checkout the repository and save the resulting metadata
+                    def scmVars = checkout([$class: 'GitSCM', branches: [[name: GITHUB_BRANCH]], extensions: [], userRemoteConfigs: [[credentialsId: 'omeraritoken', url: GITHUB_REPO]]])
+                    env.commitHash = scmVars.GIT_COMMIT.take(7)
+                    echo "commitHash"
+                    echo "${commitHash}"
+                    echo "scmVars.GIT_COMMIT"
+                    echo "${scmVars.GIT_COMMIT}"
+                }
+            }
+        }
+    }
+    post{
+        always{
+            emailext to: "${list}", //$DEFAULT_RECIPIENTS"",
+                subject:"Test", //$DEFAULT_SUBJECT,
+                body:"CommitID: ${commitHash} This mail send from the mail list at github repo", //$DEFAULT_CONTENT,
+                attachLog: true
+        }
+    }
+}
