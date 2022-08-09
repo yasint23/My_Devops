@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+  
+    environment {
+        REGION = "eu-west-1"
+        BUCKET = "jenkins-backup-bucket"
+        FOLDER = "/var/lib/jenkins/workspace/db_backup"
+        AWS_CREDENTIALS = "db_credential"
+    }
+
+    stages{
+        stage('tar jenkins home directory') {
+            steps {
+                  sh '''
+                        echo 'tar $JENKINS_HOME directory'
+                        set +e 
+                        tar -cvf jenkins_backup.tar -C ${JENKINS_HOME} .
+                        exitcode=$?
+                        if [ "$exitcode" != "1" ] && [ "$exitcode" != "0" ]; then
+                        exit $exitcode
+                        fi
+                        set -e
+                      '''
+            }
+        }
+ 
+        stage('Upload-db-backup-S3') {
+            steps {
+                sshagent(['jenkins_backup']) {
+                    withAWS(region:"${REGION}", credentials:"${AWS_CREDENTIALS}"){
+                        s3Upload(file:"jenkins_backup.tar", bucket:"${BUCKET}", path:'')
+                    }
+                }    
+           }
+        }
+        
+        stage('Delete Old DB Backup') {
+            steps {
+                  sh 'pwd & ls -al'
+                  sh 'rm -rf jenkins_backup.tar'
+            }
+        }
+    }
+}

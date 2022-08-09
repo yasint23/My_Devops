@@ -1,0 +1,41 @@
+// Backup of database from database server bys Jenkins server via sh command 
+pipeline {
+    agent any
+  
+    environment {
+        REGION = "eu-west-1"
+        BUCKET = "edutest-client-db-backup"
+        FOLDER = "/var/lib/jenkins/workspace/db_backup"
+        AWS_CREDENTIALS = "db_credential"
+    }
+
+    stages{
+        stage('Delete Old DB Backup') {
+            steps {
+                  sh 'rm -f *.sql'
+            }
+        }
+        stage('Database backend via SSH') {
+            steps {
+                script {
+                    DATE_TAG = java.time.LocalDate.now()
+                    DATETIME_TAG = java.time.LocalDateTime.now()
+                }
+                sshagent(['db_backup']) {
+                  sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.26.68 docker exec kypnt-mysql /usr/bin/mysqldump --databases test-centre-service iam-service -u root --password=Ug5YCpXFKNe3gy > backup-${DATETIME_TAG}.sql"
+                  
+                }
+            }
+        }
+ 
+        stage('Upload-db-backup-S3') {
+            steps {
+                sshagent(['db_backup']) {
+                withAWS(region:"${REGION}", credentials:"${AWS_CREDENTIALS}"){
+                    s3Upload(file:"${FOLDER}", bucket:"${BUCKET}", path:'')
+                }
+            }    
+        }
+    }
+    }
+}
