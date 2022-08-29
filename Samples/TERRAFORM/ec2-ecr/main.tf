@@ -67,7 +67,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 
 
 resource "aws_instance" "ecr-instance" {
-  ami                  = "ami-08e4e35cccc6189f4"
+  ami                  = "ami-05fa00d4c63e32376"
   instance_type        = "t2.micro"
   key_name        = "yasin" # you need to change this line
   security_groups = ["ec2-sec-gr"]
