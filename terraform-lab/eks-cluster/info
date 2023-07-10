@@ -1,0 +1,7 @@
+Create an Amazon EKS Cluster and install kubectl using Terraform
+
+- we require IAM Role ARN and Subnet ID's
+
+To get IAM Role ARN navigate to IAM by clicking on Services on the top, then click on IAM.
+
+- Copy the Subnet ID of subnets available in us-east-1a and us-east-1b 

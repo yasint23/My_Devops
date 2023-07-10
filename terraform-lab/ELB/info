@@ -1,0 +1,1 @@
+Create an Application Load Balancer to distribute the incoming traffic between two EC2 Instances using Terraform
